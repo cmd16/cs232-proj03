@@ -5,8 +5,11 @@
  *      Author: cmd38
  */
 
-int main() {
+#include "CommandLineTester.h"
+
+int main(int argc, char* argv) {
+	CommandLineTester ClTester = CommandLineTester();
+	ClTester.runTests();
 	return 0;
 }
-
 
