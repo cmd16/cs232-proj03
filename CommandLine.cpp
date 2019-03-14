@@ -22,9 +22,9 @@ CommandLine::CommandLine(istream& in) {
 	while (in.peek() != '\n' && !in.eof()) {
 		in >> word;
 		words.push(word);
-//		if (word == "&".c_str()) {
-//			myNoAmpersand = false;
-//		}
+		if (word == "&") {
+			myNoAmpersand = false;
+		}
 		cout << words.front() << endl;
 	}
 	cout << "ok" << endl;

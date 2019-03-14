@@ -1,1 +1,1 @@
-ps
+ls .. -a --directory &
