@@ -14,14 +14,15 @@ using namespace std;
 class CommandLine {
 public:
 	CommandLine(istream& in);
-	char* getCommand() const { return getArgVector(0); };
+	char* getCommand() const { return myArgVecPtr[0]; };
 	int getArgCount() const { return myArgCount; };
 	char** getArgVector() const { return myArgVecPtr; };
-	char* getArgVector(int i) const;
+	// return a pointer to the ith (zero-relative) command-line 'word' (i.e., argv[i]).
+	char* getArgVector(int i) const { return myArgVecPtr[i]; };
 	bool noAmpersand() const { return myNoAmpersand; };
 	virtual ~CommandLine();
 private:
-	int myArgCount; 	 // return the number of command-line arguments on the command-line (i.e., argc).
+	int myArgCount; 	 // the number of command-line arguments on the command-line (i.e., argc).
 	char** myArgVecPtr;	 // a pointer to a char* array, each entry of which points to one 'word' of the command-line (i.e., argv).
 	bool myNoAmpersand;  // true if and only if no ampersand was given on the command-line
 };

@@ -25,37 +25,31 @@ CommandLine::CommandLine(istream& in) {
 		if (word == "&") {
 			myNoAmpersand = false;
 		}
-		cout << words.front() << endl;
 	}
-	cout << "ok" << endl;
 
 	myArgCount = words.size();
 	myArgVecPtr = (char**) calloc (myArgCount, sizeof(string));
 	// check if memory has been successfully allocated or not
 	if (myArgVecPtr == NULL) {
-		cout << "Memory not allocated." << endl;
 		exit(1);  // TODO: is this how we want to handle that problem?
 	}
 
 	for (int i = 0; i < myArgCount; i++) {
 		word = words.front();
-		cout << word << endl;
+		myArgVecPtr[i] = new char[word.size() + 1];
 		// copy the word as a character array into argv
-		//word.copy(*(myArgVecPtr + i), word.size());
-		//strcpy(*(myArgVecPtr + i), word.c_str());
-		//*(myArgVecPtr + i) = word.c_str();
-		cout << getArgVector(i) << endl;
+		word.copy(myArgVecPtr[i], word.size() + 1);
+		myArgVecPtr[i][word.size()] = '\0';  // make sure the char* string is null-terminated
 		words.pop();
 	}
 }
 
-// return a pointer to the ith (zero-relative) command-line 'word' (i.e., argv[i]).
-char* CommandLine::getArgVector(int i) const {
-	return *(myArgVecPtr + i);
-}
-
 CommandLine::~CommandLine() {
 	// TODO Auto-generated destructor stub
+	for (int i = 0; i < myArgCount; i++) {
+		delete *(myArgVecPtr + i);
+		*(myArgVecPtr + i) = NULL;
+	}
 	free(myArgVecPtr);
 }
 
