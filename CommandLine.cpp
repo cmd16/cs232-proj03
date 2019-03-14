@@ -8,24 +8,26 @@
 #include "CommandLine.h"
 #include <queue>
 #include <stdlib.h>  // calloc, exit, free
+#include <cstring>
+#include <string>
 
 /*
  * construct a CommandLine by reading a command-line from in, parsing it, and building instance variables for argc and argv
  * (you may find the calloc() and free() system calls to be of use here)
  */
 CommandLine::CommandLine(istream& in) {
-	char* word;
-	queue<char*> words;
-	cout << words.front() << endl;
-	cout << "success" << endl;
+	myNoAmpersand = true;
+	string word;
+	queue<string> words;
 	while (in.peek() != '\n' && !in.eof()) {
 		in >> word;
 		words.push(word);
+//		if (word == "&".c_str()) {
+//			myNoAmpersand = false;
+//		}
 		cout << words.front() << endl;
 	}
-	words.front();
 	cout << "ok" << endl;
-	cout << words.front() << endl;
 
 	myArgCount = words.size();
 	myArgVecPtr = (char**) calloc (myArgCount, sizeof(string));
@@ -36,14 +38,20 @@ CommandLine::CommandLine(istream& in) {
 	}
 
 	for (int i = 0; i < myArgCount; i++) {
-		cout << words.front() << endl;
+		word = words.front();
+		cout << word << endl;
+		// copy the word as a character array into argv
+		//word.copy(*(myArgVecPtr + i), word.size());
+		//strcpy(*(myArgVecPtr + i), word.c_str());
+		//*(myArgVecPtr + i) = word.c_str();
+		cout << getArgVector(i) << endl;
 		words.pop();
 	}
 }
 
 // return a pointer to the ith (zero-relative) command-line 'word' (i.e., argv[i]).
 char* CommandLine::getArgVector(int i) const {
-
+	return *(myArgVecPtr + i);
 }
 
 CommandLine::~CommandLine() {
