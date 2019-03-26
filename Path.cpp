@@ -39,8 +39,10 @@ int Path::find(const string& program) const {
 			string dirName = directory[i];
 
 		if ((dir = opendir(dirName.c_str())) != NULL) {
-			if (dp = readdir (dirName.c_str()) == program.c_str()) {
+			if ((dp = readdir (dir))) {
+				if (dp->d_name == program ) {
 				index = i; 
+				}
 			}
 		}
 		else {
