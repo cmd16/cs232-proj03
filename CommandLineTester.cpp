@@ -31,6 +31,7 @@ void CommandLineTester::testConstructor() {
 	assert(c0.getArgCount() == 1);
 	assert(c0.noAmpersand());
 	assert(strcmp(c0.getCommand(), "ps") == 0);
+	assert(c0.getArgVector(1) == NULL);
 	cout << "0 " << flush;
 
 	infilename = "cl_test_01.txt";
@@ -45,6 +46,7 @@ void CommandLineTester::testConstructor() {
 	assert(strcmp(c1.getArgVector(2), "-a") == 0);
 	assert(strcmp(c1.getArgVector(3), "--directory") == 0);
 	assert(strcmp(c1.getArgVector(4), "&") == 0);
+	assert(c1.getArgVector(5) == NULL);
 	cout << "1 " << flush;
 	cout << "Passed!" << endl;
 }
