@@ -6,7 +6,7 @@
  */
 
 #include "Path.h"
-#include <stdlib.h>
+
 
 
 
@@ -20,24 +20,38 @@ Path::Path() {
 	char * pch;								// initializing a character pointer
 	pPath = getenv("PATH");					// populaing the charcter pointer pPath with the PATH
 	pch = strtok(pPath, ":");				// splits the chars into chucnks anytime the ":" appears
-	unsigned i = 0;
+
 	
-	// loop that stores each directory in PATH in a vector
+/* Loop that stores each directory in PATH in a vector */
 	while (pch != NULL) {
-		dir.push_back(pch);
-		// cout << dir[i] << endl;
-		i += 1;
+		directory.push_back(pch);
 		pch = strtok(NULL, ":");			// after ":" a NULL is inserted into the character array causing the loop to return to the top
 	}
 
 }
 
-void Path::run() {
+int Path::find(const string& program) const {
+	int index = -1;							// sets the default index value			
+	DIR *dir;	
+	struct dirent *dp; 						// handle to read from the directory
+	
+		for (unsigned i = 0; i < sizeof(directory) ; i++) {
+			string dirName = directory[i];
 
-
+		if ((dir = opendir(dirName.c_str())) != NULL) {
+			if (dp = readdir (dirName.c_str()) == program.c_str()) {
+				index = i; 
+			}
+		}
+		else {
+			return index;
+		}
+	}
+	return index;
 }
 
-Path::~Path() {
+
+Path::~Path()  {
 	// TODO Auto-generated destructor stub
 }
 
