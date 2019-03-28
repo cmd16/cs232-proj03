@@ -13,17 +13,25 @@ PathTester::PathTester() {
 
 }
 
-void PathTester::run(){
+void PathTester::testConstructor(){
 	Path test;
-	vector<string>dir = test.returnDIR();
-	for (unsigned i =0 ; i < sizeof(dir)-3; i++ ) {
+	char * testSize;
+	testSize = getenv("PATH");
+
+	cout << testSize << endl;
+	vector<string> dir = test.returnDIR();
+	// cout << "\n" << endl;
+	cout << dir.size() << endl;
+	for (unsigned i = 0 ; i < dir.size(); i++ ) {
 			cout <<  dir[i] << endl;
 			
 	}
-
+	// assert
 }
 
+void PathTester::testFind() {
 
+}
 
 
 PathTester::~PathTester() {

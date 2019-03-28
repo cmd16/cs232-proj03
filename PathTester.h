@@ -12,7 +12,8 @@
 class PathTester {
 public:
 	PathTester();
-	void run();
+	void testConstructor();
+	void testFind();
 	virtual ~PathTester();
 };
 
