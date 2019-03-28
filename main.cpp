@@ -6,10 +6,13 @@
  */
 
 #include "CommandLineTester.h"
+#include "PathTester.h"
 
 int main(int argc, char* argv) {
 	CommandLineTester ClTester = CommandLineTester();
 	ClTester.runTests();
+    PathTester runTests;
+	runTests.run();
 	return 0;
 }
 
