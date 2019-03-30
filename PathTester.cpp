@@ -7,15 +7,18 @@
 
 #include "PathTester.h"
 #include "Path.h"
+#include <assert.h>
 
 vector<string> dir;
+Path test;
+
 PathTester::PathTester() {
 	// TODO Auto-generated constructor stub
 
 }
 
 void PathTester::testConstructor(){
-	Path test;
+	
 	char *testSize;
 	testSize = getenv("PATH");
 
@@ -27,15 +30,21 @@ void PathTester::testConstructor(){
 			cout <<  dir[i] << endl;
 			
 	}
-	// assert
+	cout << "..... 0 ....." << endl;
 }
 
 void PathTester::testFind() {
 
-	Path test;
 	dir = test.returnDIR();
-
-	dir.find();
+	// test.find("zsh");
+	cout << test.find("bin2c") << endl ;
+	assert ( test.find("bin2c") != -1 );
+	cout << "..... 1 ....." << endl; 
+	cout << test.find("cat") << "\t" <<"LOOK HERE!!"<<endl; 
+	cout << "..... 2 ....." << endl; 
+	cout <<   test.find("zsh") << "\t" << "THIS IS WHERE ZSH IS !! "<<endl ;
+	assert ( test.find("zsh") == 5);
+	cout << " All tests Passed !" << endl;
 
 }
 
