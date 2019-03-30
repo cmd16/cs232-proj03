@@ -8,6 +8,7 @@
 #include "CDShell.h"
 #include <unistd.h>  // fork
 #include <sys/wait.h>  // waitpid
+#include <sys/param.h>  // MAXPATHLEN
 
 CDShell::CDShell() {
 	// create Path
@@ -32,10 +33,25 @@ void CDShell::run() {
 		else if (command == "cd") {
 			// change directory (look at the accepted answer on https://stackoverflow.com/questions/10792227/c-change-working-directory-from-user-input)
 			cout << "changing directory" << endl;
+			char* newDir = comm_line.getArgVector(1);
+			int rc = chdir(newDir);
+			if (rc == -1) {
+				// TODO: handle error. use errno to determine problem
+				cerr << "failed to change directory" << endl;
+			}
 			myPrompt = Prompt(); // make a new Prompt because the current working directory has changed
 		}
 		else if (command == "pwd") {
-			// do getcwd (look at the little wrapper in https://stackoverflow.com/questions/2203159/is-there-a-c-equivalent-to-getcwd )
+			// do getcwd (adopted from the accepted answer on https://stackoverflow.com/questions/10792227/c-change-working-directory-from-user-input)
+			char buffer[MAXPATHLEN];
+			char *path = getcwd(buffer, MAXPATHLEN);
+			if (!path) {
+				// TODO: handle error. use errno to determine problem
+				cerr << "failed to get current working directory" << endl;
+			} else {
+				string current_path = path;
+				cout << current_path << endl;
+			}
 		}
 		else {  // execute the system call
 			// find the filename specified in command. If the command can't be found, output an error and continue
@@ -43,7 +59,7 @@ void CDShell::run() {
 			int index = myPath.find(command);
 			cout << "index is " << index << " size of path is " << myPath.returnDIR().size() << endl;
 			if (index == -1) {
-				cout << command << ": command not found" << endl;
+				cerr << command << ": command not found" << endl;
 				continue;
 			}
 			string filename = myPath.getDirectory(myPath.find(command));
@@ -54,7 +70,7 @@ void CDShell::run() {
 				int status = execve(filename.c_str(), comm_line.getArgVector(), NULL);
 				if (status == -1) {
 					// TODO: figure out how to output error
-					cout << "Error executing command" << endl;
+					cerr << "Error executing command" << endl;
 				}
 			}
 			else if (pid == -1) {
