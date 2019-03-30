@@ -16,8 +16,8 @@
  */
 Path::Path() {
 	char * pch;								// initializing a character pointer
-	pPath = getenv("PATH");					// populaing the charcter pointer pPath with the PATH
-	pch = strtok(pPath, ":");				// splits the chars into chucnks anytime the ":" appears
+	pPath = getenv("PATH");					// populating the character pointer pPath with the PATH
+	pch = strtok(pPath, ":");				// splits the chars into chunks any time the ":" appears
 
 
 	
@@ -34,7 +34,7 @@ Path::Path() {
 /* find
  * @param: none
  * Precondition: none
- * Postcondition:   retunrs the index of the directory containing program or  Path constructed from the PATH environment variable
+ * Postcondition:   returns the index of the directory containing program or  Path constructed from the PATH environment variable
  * return: int
  */
 int Path::find(const string& program) const {	

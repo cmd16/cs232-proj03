@@ -10,21 +10,27 @@
 #include <assert.h>
 
 vector<string> dir;
-Path test;
+//Path test;
 
 PathTester::PathTester() {
 	// TODO Auto-generated constructor stub
 
 }
 
-void PathTester::testConstructor(){
-	
-	char *testSize;
-	testSize = getenv("PATH");
+void PathTester::runTests() {
+	testConstructor();
+//	testFind();
+	testFindcmd38();
+}
 
-	cout << testSize << endl;
+void PathTester::testConstructor(){
+	Path test;
+	
+	char *path;
+	path = getenv("PATH");
+
+//	cout << path << endl;
 	dir = test.returnDIR();
-	// cout << "\n" << endl;
 	cout << dir.size() << endl;
 	for (unsigned i = 0 ; i < dir.size(); i++ ) {
 			cout <<  dir[i] << endl;
@@ -34,6 +40,7 @@ void PathTester::testConstructor(){
 }
 
 void PathTester::testFind() {
+	Path test;
 
 	dir = test.returnDIR();
 	// test.find("zsh");
@@ -46,6 +53,17 @@ void PathTester::testFind() {
 	assert ( test.find("zsh") == 5);
 	cout << " All tests Passed !" << endl;
 
+}
+
+void PathTester::testFindcmd38() {
+	Path test;
+
+	// test find on cmd38's account in ulab
+	dir = test.returnDIR();
+	cout << "size is " << dir.size() << endl;
+	int index = test.find("cat");
+	cout << index << endl;
+	cout << test.getDirectory(index) << endl;
 }
 
 

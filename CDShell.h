@@ -17,7 +17,7 @@ public:
 	void run();
 	virtual ~CDShell();
 private:
-	Path myPath;
+//	Path myPath;
 	Prompt myPrompt;
 };
 
