@@ -20,7 +20,6 @@ Path::Path() {
 	pch = strtok(pPath, ":");				// splits the chars into chucnks anytime the ":" appears
 	
 
-	
 /* Loop that stores each directory in PATH in a vector */
 	while (pch != NULL) {
 		directory.push_back(pch);

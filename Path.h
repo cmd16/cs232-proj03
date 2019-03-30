@@ -21,6 +21,7 @@ public:
 	Path();
 	virtual ~Path();
 	int find(const string& program) const;
+	string getDirectory(int i) const ;
 	vector<string> returnDIR() const { return directory; }
 
 
