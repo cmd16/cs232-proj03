@@ -39,13 +39,12 @@ void CommandLineTester::testConstructor() {
 	assert(fin1.is_open());
 	CommandLine c1 = CommandLine(fin1);
 	fin1.close();
-	assert(c1.getArgCount() == 5);
+	assert(c1.getArgCount() == 4);
 	assert(! c1.noAmpersand());
 	assert(strcmp(c1.getCommand(), "ls") == 0);
 	assert(strcmp(c1.getArgVector(1), "..") == 0);
 	assert(strcmp(c1.getArgVector(2), "-a") == 0);
 	assert(strcmp(c1.getArgVector(3), "--directory") == 0);
-	assert(strcmp(c1.getArgVector(4), "&") == 0);
 	assert(c1.getArgVector(5) == NULL);
 	cout << "1 " << flush;
 	cout << "Passed!" << endl;

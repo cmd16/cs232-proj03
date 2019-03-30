@@ -21,9 +21,11 @@ CommandLine::CommandLine(istream& in) {
 	queue<string> words;
 	while (in.peek() != '\n' && !in.eof()) {
 		in >> word;
-		words.push(word);
 		if (word == "&") {
 			myNoAmpersand = false;
+		}
+		else {
+			words.push(word);
 		}
 	}
 
