@@ -18,6 +18,8 @@ Path::Path() {
 	char * pch;								// initializing a character pointer
 	pPath = getenv("PATH");					// populaing the charcter pointer pPath with the PATH
 	pch = strtok(pPath, ":");				// splits the chars into chucnks anytime the ":" appears
+
+
 	
 
 /* Loop that stores each directory in PATH in a vector */
@@ -32,31 +34,28 @@ Path::Path() {
 /* find
  * @param: none
  * Precondition: none
- * Postcondition:   retunrs teh index of the directory containing program or  Path constructed from the PATH environment variable
+ * Postcondition:   retunrs the index of the directory containing program or  Path constructed from the PATH environment variable
  * return: int
  */
-int Path::find(const string& program) const {
-	int index = -1;							// sets the default index value			
+int Path::find(const string& program) const {	
 	DIR *dir;	
-	struct dirent *dp; 						// handle to read from the directory
-
+	struct dirent *entry; 						// handle to read from the directory
 		for (unsigned i = 0; i < directory.size() ; i++) {
-			string dirName = directory[i];
+			if ((dir = opendir(directory[i].c_str())) != NULL) {
 
-		if ((dir = opendir(dirName.c_str())) != NULL) {
-			while((dp = readdir (dir)) != NULL) {
+				while( (entry = readdir(dir)) != NULL) {
 
-				if (dp->d_name == program ) {
-				index = i; 
-				cout << index << endl; 
+					if (entry->d_name == program ) {
+						closedir(dir);
+						return i;
+					} else {
+						 
+					}
 				}
 			}
+			closedir(dir);
 		}
-		else {
-			index = -1;
-		}
-	}
-	return index;
+	return -1;
 }
 
 /* getDirectory

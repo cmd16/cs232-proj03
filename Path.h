@@ -28,6 +28,7 @@ public:
 
 private: 
 	vector<string> directory;
+	// int index;					
 	char * pPath;
 	friend class PathTester;
 };

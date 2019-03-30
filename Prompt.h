@@ -8,6 +8,7 @@
 #ifndef PROMPT_H_
 #define PROMPT_H_
 #include "Path.h"
+#include <unistd.h>
 
 class Prompt {
 public:
