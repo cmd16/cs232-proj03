@@ -9,10 +9,10 @@
 #include "PathTester.h"
 
 int main(int argc, char* argv) {
-	CommandLineTester ClTester = CommandLineTester();
-	ClTester.runTests();
+	// CommandLineTester ClTester = CommandLineTester();
+	// ClTester.runTests();
     PathTester runTests;
-	runTests.run();
+	runTests.testConstructor();
 	return 0;
 }
 

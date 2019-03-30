@@ -8,6 +8,7 @@
 #include "PathTester.h"
 #include "Path.h"
 
+vector<string> dir;
 PathTester::PathTester() {
 	// TODO Auto-generated constructor stub
 
@@ -15,11 +16,11 @@ PathTester::PathTester() {
 
 void PathTester::testConstructor(){
 	Path test;
-	char * testSize;
+	char *testSize;
 	testSize = getenv("PATH");
 
 	cout << testSize << endl;
-	vector<string> dir = test.returnDIR();
+	dir = test.returnDIR();
 	// cout << "\n" << endl;
 	cout << dir.size() << endl;
 	for (unsigned i = 0 ; i < dir.size(); i++ ) {
@@ -30,6 +31,11 @@ void PathTester::testConstructor(){
 }
 
 void PathTester::testFind() {
+
+	Path test;
+	dir = test.returnDIR();
+
+	dir.find();
 
 }
 
