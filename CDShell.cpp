@@ -7,6 +7,7 @@
 
 #include "CDShell.h"
 #include <unistd.h>  // fork
+#include <sys/wait.h>  // waitpid
 
 CDShell::CDShell() {
 	// TODO Auto-generated constructor stub
@@ -42,6 +43,13 @@ void CDShell::run() {
 					// TODO: figure out how to output error
 					cout << "Error executing command" << endl;
 				}
+			}
+			else if (pid == -1) {
+				// TODO: output error
+				cout << "Error with fork" << endl;
+			}
+			else if (comm_line.noAmpersand()) {
+				waitpid(pid, NULL, WNOHANG);  // don't care about status. TODO: change to something else later. look at https://www.ibm.com/support/knowledgecenter/en/SSLTBW_2.3.0/com.ibm.zos.v2r3.bpxbd00/rtwaip.htm
 			}
 		}
 	}
