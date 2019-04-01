@@ -18,7 +18,7 @@ public:
 	int getArgCount() const { return myArgCount; };
 	char** getArgVector() const { return myArgVecPtr; };
 	// return a pointer to the ith (zero-relative) command-line 'word' (i.e., argv[i]).
-	char* getArgVector(int i) const { return myArgVecPtr[i]; };
+	char* getArgVector(int i) const;
 	bool noAmpersand() const { return myNoAmpersand; };
 	virtual ~CommandLine();
 private:

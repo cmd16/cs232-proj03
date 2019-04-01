@@ -10,6 +10,7 @@
 #include <stdlib.h>  // calloc, exit, free
 #include <cstring>
 #include <string>
+#include <stdexcept>
 
 /*
  * construct a CommandLine by reading a command-line from in, parsing it, and building instance variables for argc and argv
@@ -30,7 +31,7 @@ CommandLine::CommandLine(istream& in) {
 	}
 
 	myArgCount = words.size();
-	myArgVecPtr = (char**) calloc (myArgCount, sizeof(string));
+	myArgVecPtr = (char**) calloc (myArgCount, sizeof(char*));
 	// check if memory has been successfully allocated or not
 	if (myArgVecPtr == NULL) {
 		exit(1);  // TODO: is this how we want to handle that problem?
@@ -46,12 +47,21 @@ CommandLine::CommandLine(istream& in) {
 	}
 }
 
+char* CommandLine::getArgVector(int i) const {
+	if (i < 0) {
+		throw out_of_range("getArgVector(int i): index too low");
+	}
+	if (i > myArgCount - 1) {
+		throw out_of_range("getArgVector(int i): index too high");
+	}
+	return myArgVecPtr[i];
+}
+
 CommandLine::~CommandLine() {
 	// TODO Auto-generated destructor stub
 	for (int i = 0; i < myArgCount; i++) {
-		delete *(myArgVecPtr + i);
-		*(myArgVecPtr + i) = NULL;
+		delete [] myArgVecPtr[i];
+		myArgVecPtr[i] = NULL;
 	}
 	free(myArgVecPtr);
 }
-

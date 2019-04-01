@@ -9,7 +9,7 @@
 #include "PathTester.h"
 #include "CDShell.h"
 
-int main(int argc, char* argv) {
+int main() {
 	CommandLineTester ClTester = CommandLineTester();
 	ClTester.runTests();
 //    PathTester PTester;
