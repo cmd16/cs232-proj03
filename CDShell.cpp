@@ -11,18 +11,15 @@
 #include <sys/param.h>  // MAXPATHLEN
 
 CDShell::CDShell() {
-	// create Path
-//	myPath = Path();
-//	cout << "path size is " << myPath.returnDIR().size() << endl;
 	myPrompt = Prompt();
 }
 
+// execute your shell, using CommandLine, Path, and Prompt. Read in user commands and execute them appropriately.
 void CDShell::run() {
 	Path myPath;
 	cout << "path size " << myPath.returnDIR().size() << endl;
 	bool to_exit = false;  // flag to indicate whether we want to exit the program or not
 	while (! to_exit) {
-//		cin.ignore();
 		cout << myPrompt.get() << flush;
 
 		CommandLine comm_line(cin);
@@ -32,7 +29,6 @@ void CDShell::run() {
 		}
 		else if (command == "cd") {
 			// change directory (look at the accepted answer on https://stackoverflow.com/questions/10792227/c-change-working-directory-from-user-input)
-			cout << "changing directory" << endl;
 			char* newDir = comm_line.getArgVector(1);
 			int rc = chdir(newDir);
 			if (rc == -1) {
