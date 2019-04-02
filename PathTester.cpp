@@ -17,22 +17,20 @@ PathTester::PathTester() {
 }
 
 void PathTester::runTests() {
+	cout << "Testing Path..." << endl;
 	testConstructor();
 	testFind();
 	testFindcmd38();
+	cout << "All tests passed!" << endl;
 }
 
 void PathTester::testConstructor(){
 	Path test;
 	
-	const char *path;
-	path = getenv("PATH");
-
-//	cout << path << endl;
 	vector<string> dir;
 	dir = test.returnDIR();
 	dir.size();
-	cout << dir.size() << endl;
+//	cout << dir.size() << endl;
 //	for (unsigned i = 0 ; i < dir.size(); i++ ) {
 //			cout <<  dir[i] << endl;
 //
@@ -51,8 +49,6 @@ void PathTester::testFind() {
 	cout << "..... 2 ....." << endl; 
 //	cout <<   test1.find("zsh") << "\t" << "THIS IS WHERE ZSH IS !! "<<endl ;
 	assert ( test1.find("zsh") == 4);  // 5 on Daniel's machine
-	cout << " All tests Passed !" << endl;
-
 }
 
 void PathTester::testFindcmd38() {
@@ -60,10 +56,10 @@ void PathTester::testFindcmd38() {
 	vector<string> dir;
 	// test find on cmd38's account in ulab
 	dir = test.returnDIR();
-	cout << "size is " << dir.size() << endl;
+//	cout << "size is " << dir.size() << endl;
 	int index = test.find("cat");
-	cout << index << endl;
-	cout << test.getDirectory(index) << endl;
+//	cout << index << endl;
+//	cout << test.getDirectory(index) << endl;
 }
 
 
