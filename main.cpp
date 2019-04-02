@@ -12,10 +12,10 @@
 int main() {
 	CommandLineTester ClTester = CommandLineTester();
 	ClTester.runTests();
-    PathTester PTester;
+  PathTester PTester;
 	PTester.runTests();
-//	CDShell shell;
-//	shell.run();
+	CDShell shell;
+	shell.run();
 	return 0;
 }
 

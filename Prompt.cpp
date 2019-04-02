@@ -20,7 +20,7 @@ Prompt::Prompt() {
      if (getcwd == NULL) {
          cerr << "Propmt(): Error creating prompt" << endl;
      } else {
-         currentDir = dummy; 
+         currentDir = dummy+'$'+' '; 
      }
 
     }
