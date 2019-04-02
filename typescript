@@ -1,0 +1,1231 @@
+Script started on Mon 01 Apr 2019 11:38:49 PM EDT
+cmd38@gold28:~/232/proj03$ cat *.h *.cpp *.txt
+/*
+ * CDShell.h
+ *
+ *  Created on: Mar 30, 2019, for CS 232 at Calvin College
+ *      Author: Catherine DeJager and Daniel Ackuaku
+ */
+
+#ifndef CDSHELL_H_
+#define CDSHELL_H_
+#include "Path.h"
+#include "Prompt.h"
+#include "CommandLine.h"
+
+class CDShell {
+public:
+	CDShell();
+	void run();
+	virtual ~CDShell();
+private:
+//	Path myPath;
+	Prompt myPrompt;
+};
+
+#endif /* CDSHELL_H_ */
+/*
+ * CommandLine.h
+ *
+ *  Created on: Mar 13, 2019, for CS 232 at Calvin College
+ *      Author: Catherine DeJager
+ */
+
+#ifndef COMMANDLINE_H_
+#define COMMANDLINE_H_
+
+#include <iostream>
+using namespace std;
+
+class CommandLine {
+public:
+	CommandLine(istream& in);
+	char* getCommand() const { return myArgVecPtr[0]; };
+	int getArgCount() const { return myArgCount; };
+	char** getArgVector() const { return myArgVecPtr; };
+	// return a pointer to the ith (zero-relative) command-line 'word' (i.e., argv[i]).
+	char* getArgVector(int i) const;
+	bool noAmpersand() const { return myNoAmpersand; };
+	virtual ~CommandLine();
+private:
+	int myArgCount; 	 // the number of command-line arguments on the command-line (i.e., argc).
+	char** myArgVecPtr;	 // a pointer to a char* array, each entry of which points to one 'word' of the command-line (i.e., argv).
+	bool myNoAmpersand;  // true if and only if no ampersand was given on the command-line
+};
+
+#endif /* COMMANDLINE_H_ */
+/*
+ * CommandLineTester.h
+ *
+ *  Created on: Mar 13, 2019
+ *      Author: cmd38
+ */
+
+#ifndef COMMANDLINETESTER_H_
+#define COMMANDLINETESTER_H_
+
+#include "CommandLine.h"
+
+class CommandLineTester {
+public:
+	CommandLineTester();
+	void runTests();
+	void testConstructor();
+	virtual ~CommandLineTester();
+};
+
+#endif /* COMMANDLINETESTER_H_ */
+/*
+ * Path.h
+ *
+ *  Created on: Mar 25, 2019, for CS 232 at Calvin College
+ *      Author: Daniel Ackuaku
+ */
+
+#ifndef PATH_H_
+#define PATH_H_
+#include <iostream>
+#include <stdio.h>
+#include <string.h>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <stdlib.h>
+#include <dirent.h>
+#include <sys/types.h>
+using namespace std;
+
+class Path {
+public:
+	Path();
+	virtual ~Path();
+	int find(const string& program) const;
+	string getDirectory(int i) const ;
+	vector<string> returnDIR() const { return directory; }
+
+
+
+private: 
+	vector<string> directory;
+	// int index;					
+	char * pPath;
+	friend class PathTester;
+};
+
+#endif /* PATH_H_ */
+/*
+ * PathTester.h
+ *
+ *  Created on: Mar 25, 2019, for CS 232 at Calvin College
+ *      Author: Daniel Ackuaku
+ */
+
+#ifndef PATHTESTER_H_
+#define PATHTESTER_H_
+#include "Path.h"
+
+class PathTester {
+public:
+	PathTester();
+	void runTests();
+	void testConstructor();
+	void testFind();
+	void testFindcmd38();
+	virtual ~PathTester();
+};
+
+#endif /* PATHTESTER_H_ */
+/*
+ * Prompt.h
+ *
+ *  Created on: Mar 25, 2019, for CS 232 at Calvin College
+ *      Author: Daniel Ackuaku
+ */
+
+#ifndef PROMPT_H_
+#define PROMPT_H_
+#include "Path.h"
+#include <unistd.h>
+
+class Prompt {
+public:
+	Prompt();
+    string get() const ;
+	virtual ~Prompt();
+    
+
+
+
+
+private: 
+	string currentDir;
+};
+
+
+#endif
+/*
+ * CDShell.cpp
+ *
+ *  Created on: Mar 30, 2019, for CS 232 at Calvin College
+ *      Author: Catherine D and Daniel Ackuaku
+ */
+
+#include "CDShell.h"
+#include <unistd.h>  // fork
+#include <sys/wait.h>  // waitpid
+#include <sys/param.h>  // MAXPATHLEN
+
+CDShell::CDShell() {
+	myPrompt = Prompt();
+}
+
+// execute your shell, using CommandLine, Path, and Prompt. Read in user commands and execute them appropriately.
+void CDShell::run() {
+	Path myPath;
+	cout << "path size " << myPath.returnDIR().size() << endl;
+	bool to_exit = false;  // flag to indicate whether we want to exit the program or not
+	while (! to_exit) {
+		cout << myPrompt.get() << flush;
+
+		CommandLine comm_line(cin);
+		string command = comm_line.getCommand();
+		if (command == "exit") {
+			to_exit = true;
+		}
+		else if (command == "cd") {
+			// change directory (look at the accepted answer on https://stackoverflow.com/questions/10792227/c-change-working-directory-from-user-input)
+			char* newDir = comm_line.getArgVector(1);
+			int rc = chdir(newDir);
+			if (rc == -1) {
+				// TODO: handle error. use errno to determine problem
+				cerr << "failed to change directory" << endl;
+			}
+			myPrompt = Prompt(); // make a new Prompt because the current working directory has changed
+		}
+		else if (command == "pwd") {
+			// do getcwd (adopted from the accepted answer on https://stackoverflow.com/questions/10792227/c-change-working-directory-from-user-input)
+			char buffer[MAXPATHLEN];
+			char *path = getcwd(buffer, MAXPATHLEN);
+			if (!path) {
+				// TODO: handle error. use errno to determine problem
+				cerr << "failed to get current working directory" << endl;
+			} else {
+				string current_path = path;
+				cout << current_path << endl;
+			}
+		}
+		else {  // execute the system call
+			// find the filename specified in command. If the command can't be found, output an error and continue
+			int index = myPath.find(command);
+			if (index == -1) {
+				cerr << command << ": command not found" << endl;
+				continue;
+			}
+			string filename = myPath.getDirectory(myPath.find(command));
+			filename = filename + "/" + command;
+			cout << "filename is " << filename << endl;
+			pid_t pid = fork();
+			if (pid == 0) {  // we are child process
+				int status = execve(filename.c_str(), comm_line.getArgVector(), NULL);
+				if (status == -1) {
+					// TODO: figure out how to output error
+					cerr << "Error executing command" << endl;
+				}
+			}
+			else if (pid == -1) {
+				// TODO: output error
+				cerr << "Error with fork" << endl;
+			}
+			else if (comm_line.noAmpersand()) {
+				waitpid(pid, NULL, 0); // wait for the command to finish
+			}
+		}
+	}
+}
+
+CDShell::~CDShell() {
+
+}
+
+/*
+ * CommandLine.cpp
+ *
+ *  Created on: Mar 13, 2019, for CS 232 at Calvin College
+ *  Used for constructing a CommandLine from an istream
+ *      Author: Catherine DeJager
+ */
+
+#include "CommandLine.h"
+#include <queue>
+#include <stdlib.h>  // calloc, exit, free
+#include <cstring>
+#include <string>
+#include <stdexcept>
+
+/*
+ * construct a CommandLine by reading a command-line from in, parsing it, and building instance variables for argc and argv
+ * (you may find the calloc() and free() system calls to be of use here)
+ * Assumption: the istream will be terminated with newline (which cin is).
+ */
+CommandLine::CommandLine(istream& in) {
+	myNoAmpersand = true;
+	string word;
+	queue<string> words;
+	while (in.peek() != '\n') {
+		in >> word;
+		if (word == "&") {
+			myNoAmpersand = false;
+		}
+		else {
+			words.push(word);
+		}
+	}
+	in.ignore();  // read in and ignore the newline character
+
+	myArgCount = words.size();
+	myArgVecPtr = (char**) calloc (myArgCount, sizeof(char*));
+	// check if memory has been successfully allocated or not
+	if (myArgVecPtr == NULL) {
+		cerr << "Failed to allocate ArgVecPtr. Exiting now." << endl;
+		exit(-1);  // TODO: is this how we want to handle that problem?
+	}
+
+	for (int i = 0; i < myArgCount; i++) {
+		word = words.front();
+		myArgVecPtr[i] = new char[word.size() + 1];
+		// copy the word as a character array into argv. strcpy copies the null character
+		strcpy(myArgVecPtr[i], word.c_str());
+		words.pop();
+	}
+}
+
+char* CommandLine::getArgVector(int i) const {
+	if (i < 0 or i > myArgCount - 1) {
+		throw out_of_range("getArgVector(int i): index must be non-negative and less than myArgCount");
+	}
+	return myArgVecPtr[i];
+}
+
+// CommandLine destructor deallocates myArgVecPtr and the char arrays in myArgVec
+CommandLine::~CommandLine() {
+	for (int i = 0; i < myArgCount; i++) {
+		delete [] myArgVecPtr[i];
+		myArgVecPtr[i] = NULL;
+	}
+	free(myArgVecPtr);
+}
+/*
+ * CommandLineTester.cpp
+ *
+ *  Created on: Mar 13, 2019, for CS 232 at Calvin College
+ *      Author: Catherine DeJager
+ */
+
+#include "CommandLineTester.h"
+#include <cassert>
+#include <istream>
+#include <fstream>
+#include <string.h>
+using namespace std;
+
+CommandLineTester::CommandLineTester() {
+
+}
+
+void CommandLineTester::runTests() {
+	testConstructor();
+}
+
+void CommandLineTester::testConstructor() {
+	cout << "Testing constructor... " << flush;
+	string infilename = "cl_test_0.txt";
+	ifstream fin(infilename.c_str());
+	assert(fin.is_open());
+	CommandLine c0 = CommandLine(fin);
+	fin.close();
+	assert(c0.getArgCount() == 1);
+	assert(c0.noAmpersand());
+	assert(strcmp(c0.getCommand(), "ps") == 0);
+	cout << "0 " << flush;
+
+	infilename = "cl_test_01.txt";
+	ifstream fin1(infilename.c_str());
+	assert(fin1.is_open());
+	CommandLine c1 = CommandLine(fin1);
+	fin1.close();
+	assert(c1.getArgCount() == 4);
+	assert(! c1.noAmpersand());
+	assert(strcmp(c1.getCommand(), "ls") == 0);
+	assert(strcmp(c1.getArgVector(1), "..") == 0);
+	assert(strcmp(c1.getArgVector(2), "-a") == 0);
+	assert(strcmp(c1.getArgVector(3), "--directory") == 0);
+	try {
+		assert(c1.getArgVector(4) == NULL);
+	} catch (out_of_range &e) {
+		cout << "1 " << flush;
+	}
+	try {
+		assert(c1.getArgVector(-1) == NULL);
+	} catch (out_of_range &e) {
+		cout << "2 " << flush;
+	}
+	cout << "Passed!" << endl;
+}
+
+CommandLineTester::~CommandLineTester() {
+
+}
+
+/*
+ * main.cpp
+ *
+ *  Created on: Mar 13, 2019
+ *      Author: Catherine DeJager and Daniel Ackuaku
+ */
+
+#include "CommandLineTester.h"
+#include "PathTester.h"
+#include "CDShell.h"
+
+int main() {
+	CommandLineTester ClTester = CommandLineTester();
+	ClTester.runTests();
+	PathTester PTester;
+	PTester.runTests();
+	CDShell shell;
+	shell.run();
+	return 0;
+}
+
+/*
+ * Path.cpp
+ *
+ *  Created on: Mar 25, 2019, for CS 232 at Calvin College
+ *      Author: Daniel Ackuaku
+ */
+
+#include "Path.h"
+
+
+/* constructor
+ * @param: none
+ * Precondition: none
+ * Postcondition:   a Path constructed from the PATH environment variable
+ * return: Null
+ */
+Path::Path() {
+	string newParse = getenv("PATH");
+	stringstream stream (newParse);
+	string transfer;
+	while(getline(stream, transfer, ':')){
+
+		directory.push_back(transfer);
+	}
+
+}
+
+
+/* find
+ * @param: none
+ * Precondition: none
+ * Postcondition:   returns the index of the directory containing program or  Path constructed from the PATH environment variable
+ * return: int
+ */
+int Path::find(const string& program) const {	
+	DIR *dir;	
+	struct dirent *entry; 						// handle to read from the directory
+		for (unsigned i = 0; i < directory.size() ; i++) {
+			if ((dir = opendir(directory[i].c_str())) != NULL) {
+
+				while( (entry = readdir(dir)) != NULL) {
+
+					if (entry->d_name == program ) {
+						closedir(dir);
+						return i;
+					} else {
+						 
+					}
+				}
+			}
+			closedir(dir);
+		}
+	return -1;
+}
+
+/* getDirectory
+ * @param: none
+ * Precondition: none
+ * Postcondition:   an accessor that returns the current value of the directory.
+ * return: string
+ */
+string Path::getDirectory(int i) const {
+	if (i >= directory.size() || i < 0) {
+		cerr << "getDirectory(): index out of bounds error" << endl;
+		return NULL;
+	}
+	return directory[i];
+}
+
+
+
+Path::~Path()  {
+
+}
+
+/*
+ * PathTester.cpp
+ *
+ *  Created on: Mar 25, 2019, for CS 232 at Calvin College
+ *      Author: Daniel Ackuaku and Catherine DeJager
+ */
+
+#include "PathTester.h"
+#include "Path.h"
+#include <assert.h>
+
+
+//Path test;
+
+PathTester::PathTester() {
+
+}
+
+void PathTester::runTests() {
+	testConstructor();
+	testFind();
+	testFindcmd38();
+}
+
+void PathTester::testConstructor(){
+	Path test;
+	
+	const char *path;
+	path = getenv("PATH");
+
+//	cout << path << endl;
+	vector<string> dir;
+	dir = test.returnDIR();
+	dir.size();
+	cout << dir.size() << endl;
+//	for (unsigned i = 0 ; i < dir.size(); i++ ) {
+//			cout <<  dir[i] << endl;
+//
+//	}
+	cout << "..... 0 ....." << endl;
+}
+
+void PathTester::testFind() {
+	Path test1;
+	vector<string> dir;
+	dir = test1.returnDIR();
+//	cout << test1.find("bin2c") << endl ;
+	assert ( test1.find("bin2c") != -1 );
+	cout << "..... 1 ....." << endl; 
+//	cout << test1.find("cat") << "\t" <<"LOOK HERE!!"<<endl;
+	cout << "..... 2 ....." << endl; 
+//	cout <<   test1.find("zsh") << "\t" << "THIS IS WHERE ZSH IS !! "<<endl ;
+	assert ( test1.find("zsh") == 4);  // 5 on Daniel's machine
+	cout << " All tests Passed !" << endl;
+
+}
+
+void PathTester::testFindcmd38() {
+	Path test;
+	vector<string> dir;
+	// test find on cmd38's account in ulab
+	dir = test.returnDIR();
+	cout << "size is " << dir.size() << endl;
+	int index = test.find("cat");
+	cout << index << endl;
+	cout << test.getDirectory(index) << endl;
+}
+
+
+PathTester::~PathTester() {
+
+}
+
+/*
+ * Prompt.cpp
+ *
+ *  Created on: Mar 25, 2019, for CS 232 at Calvin College
+ *      Author: Daniel Ackuaku
+ */
+
+#include "Prompt.h"
+
+/* constructor
+ * @param: none
+ * Precondition: none
+ * Postcondition:   a constructor that builds a Prompt as the full path to the working directory
+ * return: none
+ */
+Prompt::Prompt() {
+     char handle[360];
+     string dummy = getcwd(handle ,360);
+
+     if (getcwd == NULL) {
+         cerr << "Propmt(): Error creating prompt" << endl;
+     } else {
+         currentDir = dummy+'$'+' '; 
+     }
+
+    }
+
+/* get
+ * @param: none
+ * Precondition: none
+ * Postcondition:   an accessor that returns the current value of the Prompt.
+ * return: string
+ */
+    string Prompt::get() const {
+        return currentDir;
+    }
+
+
+Prompt::~Prompt(){
+
+    }
+ls .. -a --directory &
+ps
+cmd38@gold28:~/232/proj03$ cd Debug
+cmd38@gold28:~/232/proj03/Debug$ make all
+make: Nothing to be done for 'all'.
+cmd38@gold28:~/232/proj03/Debug$ cd ..
+cmd38@gold28:~/232/proj03$ ./Debug/proj03
+Testing constructor... 0 1 2 Passed!
+22
+..... 0 .....
+..... 1 .....
+..... 2 .....
+ All tests Passed !
+size is 22
+6
+/bin
+path size 22
+/home/cmd38/232/proj03$ ls
+filename is /bin/ls
+CDShell.cpp	 CommandLineTester.cpp	Path.h		Prompt.h	main.cpp
+CDShell.h	 CommandLineTester.h	PathTester.cpp	README.md	notes.md
+CommandLine.cpp  Debug			PathTester.h	cl_test_0.txt	typescript
+CommandLine.h	 Path.cpp		Prompt.cpp	cl_test_01.txt
+/home/cmd38/232/proj03$ pwd
+/home/cmd38/232/proj03
+/home/cmd38/232/proj03$ cd ..
+/home/cmd38/232$ ls -a
+filename is /bin/ls
+.  ..  proj02  proj03  proj15  project-01
+/home/cmd38/232$ ls -l /home/cs/
+filename is /bin/ls
+Error executing command
+/home/cmd38/232$ ^[[A^[[B        ls -l /home/cs
+filename is /bin/ls
+Error executing command
+/home/cmd38/232$ ps -ax &
+filename is /bin/ps
+/home/cmd38/232$   PID TTY      STAT   TIME COMMAND
+    1 ?        Ss     0:02 /sbin/init nomdmonddf nomdmonisw dis_ucode_ldr
+    2 ?        S      0:00 [kthreadd]
+    4 ?        I<     0:00 [kworker/0:0H]
+    6 ?        I<     0:00 [mm_percpu_wq]
+    7 ?        S      0:00 [ksoftirqd/0]
+    8 ?        I      0:08 [rcu_sched]
+    9 ?        I      0:00 [rcu_bh]
+   10 ?        S      0:00 [migration/0]
+   11 ?        S      0:00 [watchdog/0]
+   12 ?        S      0:00 [cpuhp/0]
+   13 ?        S      0:00 [cpuhp/1]
+   14 ?        S      0:00 [watchdog/1]
+   15 ?        S      0:00 [migration/1]
+   16 ?        S      0:00 [ksoftirqd/1]
+   18 ?        I<     0:00 [kworker/1:0H]
+   19 ?        S      0:00 [cpuhp/2]
+   20 ?        S      0:00 [watchdog/2]
+   21 ?        S      0:00 [migration/2]
+   22 ?        S      0:00 [ksoftirqd/2]
+   24 ?        I<     0:00 [kworker/2:0H]
+   25 ?        S      0:00 [cpuhp/3]
+   26 ?        S      0:00 [watchdog/3]
+   27 ?        S      0:00 [migration/3]
+   28 ?        S      0:00 [ksoftirqd/3]
+   30 ?        I<     0:00 [kworker/3:0H]
+   31 ?        S      0:00 [cpuhp/4]
+   32 ?        S      0:00 [watchdog/4]
+   33 ?        S      0:00 [migration/4]
+   34 ?        S      0:00 [ksoftirqd/4]
+   36 ?        I<     0:00 [kworker/4:0H]
+   37 ?        S      0:00 [cpuhp/5]
+   38 ?        S      0:00 [watchdog/5]
+   39 ?        S      0:00 [migration/5]
+   40 ?        S      0:00 [ksoftirqd/5]
+   42 ?        I<     0:00 [kworker/5:0H]
+   43 ?        S      0:00 [cpuhp/6]
+   44 ?        S      0:00 [watchdog/6]
+   45 ?        S      0:00 [migration/6]
+   46 ?        S      0:00 [ksoftirqd/6]
+   48 ?        I<     0:00 [kworker/6:0H]
+   49 ?        S      0:00 [cpuhp/7]
+   50 ?        S      0:00 [watchdog/7]
+   51 ?        S      0:00 [migration/7]
+   52 ?        S      0:00 [ksoftirqd/7]
+   54 ?        I<     0:00 [kworker/7:0H]
+   55 ?        S      0:00 [kdevtmpfs]
+   56 ?        I<     0:00 [netns]
+   57 ?        S      0:00 [rcu_tasks_kthre]
+   58 ?        S      0:00 [kauditd]
+   62 ?        S      0:00 [khungtaskd]
+   63 ?        S      0:00 [oom_reaper]
+   64 ?        I<     0:00 [writeback]
+   65 ?        S      0:00 [kcompactd0]
+   66 ?        SN     0:00 [ksmd]
+   67 ?        SN     0:00 [khugepaged]
+   68 ?        I<     0:00 [crypto]
+   69 ?        I<     0:00 [kintegrityd]
+   70 ?        I<     0:00 [kblockd]
+   76 ?        I<     0:00 [ata_sff]
+   77 ?        I<     0:00 [md]
+   78 ?        I<     0:00 [edac-poller]
+   79 ?        I<     0:00 [devfreq_wq]
+   80 ?        I<     0:00 [watchdogd]
+   83 ?        S      0:00 [kswapd0]
+   84 ?        S      0:00 [ecryptfs-kthrea]
+  126 ?        I<     0:00 [kthrotld]
+  127 ?        I<     0:00 [acpi_thermal_pm]
+  131 ?        I<     0:00 [ipv6_addrconf]
+  140 ?        I<     0:00 [kstrp]
+  157 ?        I<     0:00 [charger_manager]
+  212 ?        S      0:00 [scsi_eh_0]
+  213 ?        I<     0:00 [scsi_tmf_0]
+  214 ?        S      0:00 [scsi_eh_1]
+  215 ?        I<     0:00 [scsi_tmf_1]
+  216 ?        S      0:00 [scsi_eh_2]
+  217 ?        I<     0:00 [scsi_tmf_2]
+  218 ?        S      0:00 [scsi_eh_3]
+  219 ?        I<     0:00 [scsi_tmf_3]
+  220 ?        S      0:00 [scsi_eh_4]
+  221 ?        I<     0:00 [scsi_tmf_4]
+  222 ?        S      0:00 [scsi_eh_5]
+  223 ?        I<     0:00 [scsi_tmf_5]
+  231 ?        S      0:00 [nvidia-modeset]
+  237 ?        I<     0:00 [kworker/6:1H]
+  261 ?        S      0:00 [jbd2/sda5-8]
+  262 ?        I<     0:00 [ext4-rsv-conver]
+  309 ?        Ss     0:01 /lib/systemd/systemd-journald
+  310 ?        I<     0:00 [kworker/2:1H]
+  317 ?        I<     0:00 [rpciod]
+  318 ?        I<     0:00 [xprtiod]
+  360 ?        Ss     0:00 /lib/systemd/systemd-udevd
+  367 ?        S<     0:00 [loop0]
+  369 ?        S<     0:00 [loop1]
+  371 ?        S<     0:00 [loop2]
+  373 ?        S<     0:00 [loop3]
+  374 ?        S<     0:00 [loop4]
+  392 ?        I<     0:00 [kworker/0:1H]
+  393 ?        I<     0:00 [kworker/3:1H]
+  405 ?        I<     0:00 [kworker/4:1H]
+  406 ?        I<     0:00 [kworker/5:1H]
+  412 ?        I<     0:00 [kworker/1:1H]
+  497 ?        Ss     0:00 /usr/sbin/rpc.gssd
+  554 ?        I<     0:09 [kworker/7:1H]
+  580 ?        S      0:00 [irq/28-mei_me]
+  783 ?        S      0:00 [UVM global queu]
+  786 ?        S      0:00 [UVM Tools Event]
+  919 ?        Ss     0:01 /usr/sbin/acpid
+  921 ?        Ss     0:00 /usr/sbin/inetd -i
+  929 ?        I      0:00 [kworker/u16:3]
+  931 ?        Ssl    0:00 /usr/sbin/rsyslogd -n
+  936 ?        Ss     0:02 /usr/sbin/sssd -i -f
+  939 ?        Ss     0:00 avahi-daemon: running [gold28.local]
+  941 ?        Ss     0:03 /usr/bin/dbus-daemon --system --address=systemd: --nofork --nopidfile --sys
+  952 ?        S      0:00 avahi-daemon: chroot helper
+  957 ?        Ssl    0:00 /usr/sbin/NetworkManager --no-daemon
+  958 ?        Ss     0:00 /usr/sbin/cupsd -l
+  960 ?        Ssl    0:00 /usr/sbin/cups-browsed
+  961 ?        Ss     0:00 /usr/sbin/atd -f
+  969 ?        Ss     0:00 /usr/sbin/cron -f
+  972 ?        Ssl    0:06 /usr/lib/snapd/snapd
+  999 ?        S      0:09 /usr/lib/x86_64-linux-gnu/sssd/sssd_be --domain cs.calvin.edu --uid 0 --gid
+ 1001 ?        Ssl    0:00 /usr/lib/colord/colord
+ 1010 ?        S      0:00 /usr/lib/postgresql/9.5/bin/postgres -D /var/lib/postgresql/9.5/main -c con
+ 1011 ?        I<     0:00 [iprt-VBoxWQueue]
+ 1023 ?        S      0:00 [iprt-VBoxTscThr]
+ 1032 ?        S      0:03 /usr/lib/x86_64-linux-gnu/sssd/sssd_nss --uid 0 --gid 0 --debug-to-files
+ 1033 ?        S      0:00 /usr/lib/x86_64-linux-gnu/sssd/sssd_sudo --uid 0 --gid 0 --debug-to-files
+ 1034 ?        S      0:00 /usr/lib/x86_64-linux-gnu/sssd/sssd_pam --uid 0 --gid 0 --debug-to-files
+ 1035 ?        S      0:00 /usr/lib/x86_64-linux-gnu/sssd/sssd_ssh --uid 0 --gid 0 --debug-to-files
+ 1036 ?        S      0:00 /usr/lib/x86_64-linux-gnu/sssd/sssd_pac --uid 0 --gid 0 --debug-to-files
+ 1046 ?        I      0:00 [kworker/7:2]
+ 1052 ?        Ssl    0:00 /usr/lib/policykit-1/polkitd --no-debug
+ 1053 ?        Ss     0:00 /lib/systemd/systemd-logind
+ 1054 ?        Ssl    0:02 /usr/lib/accountsservice/accounts-daemon
+ 1072 pts/1    S+     0:00 script
+ 1073 pts/12   Ss     0:00 bash -i
+ 1107 ?        Ss     0:00 postgres: checkpointer process   
+ 1108 ?        Ss     0:00 postgres: writer process   
+ 1109 ?        Ss     0:00 postgres: wal writer process   
+ 1110 ?        Ss     0:00 postgres: autovacuum launcher process   
+ 1111 ?        Ss     0:00 postgres: stats collector process   
+ 1128 pts/12   S+     0:00 ./Debug/proj03
+ 1166 ?        I      0:00 [kworker/6:2]
+ 1167 pts/12   S+     0:00 ./Debug/proj03
+ 1169 pts/12   S+     0:00 ./Debug/proj03
+ 1176 pts/13   Ss+    0:00 bash
+ 1182 pts/12   R+     0:00 ps -ax
+ 1298 ?        Ss     0:00 /sbin/dhclient -1 -v -pf /run/dhclient.enp0s25.pid -lf /var/lib/dhcp/dhclie
+ 1406 ?        Ssl    1:44 /usr/bin/mongod --config /etc/mongod.conf
+ 1407 ?        Ss     0:00 /usr/sbin/oddjobd -n -p /var/run/oddjobd.pid -t 300
+ 1409 ?        Ss     0:00 /usr/sbin/certmonger -S -p /var/run/certmonger.pid -n
+ 1410 ?        Ss     0:00 /usr/games/bzfs -advertise NONE
+ 1411 ?        Ss     0:02 /usr/bin/perl /usr/local/scripts/computerinfodaemon.pl
+ 1413 ?        Ssl    0:00 /usr/bin/whoopsie -f
+ 1424 ?        Ss     0:00 /usr/sbin/sshd -D
+ 1446 ?        I<     0:00 [nfsiod]
+ 1490 ?        S      0:00 [NFSv4 callback]
+ 1590 ?        S<L    0:01 /usr/bin/atop -a -w /var/log/atop/atop_20190401 600
+ 1620 ?        SLsl   0:00 /usr/sbin/lightdm
+ 1766 ?        Ss     0:00 /usr/lib/postfix/sbin/master
+ 1768 ?        S      0:00 qmgr -l -t unix -u
+ 1917 ?        SNsl   0:00 /usr/lib/rtkit/rtkit-daemon
+ 1943 ?        Ssl    0:01 /usr/bin/ruby /usr/bin/puppet agent
+ 1951 tty1     Ss+    0:00 /sbin/agetty --noclear tty1 linux
+ 2429 ?        Ss     0:01 /usr/sbin/ntpd -p /var/run/ntpd.pid -c /var/lib/ntp/ntp.conf.dhcp -u 125:13
+ 3295 tty7     Ss+    8:25 /usr/lib/xorg/Xorg -core :0 -seat seat0 -auth /var/run/lightdm/root/:0 -nol
+ 3299 ?        Ss     0:00 /usr/bin/nvidia-persistenced --user root --no-persistence-mode --verbose
+ 3301 ?        S      1:21 [irq/30-nvidia]
+ 3302 ?        S      0:00 [nvidia]
+ 3924 ?        Ssl    0:00 /usr/lib/upower/upowerd
+ 4382 ?        Ssl    0:01 /usr/lib/udisks2/udisksd --no-debug
+ 5540 ?        Sl     0:00 lightdm --session-child 13 20
+ 5552 ?        Ss     0:00 /lib/systemd/systemd --user
+ 5553 ?        S      0:00 (sd-pam)
+ 5557 ?        Ss     0:00 /sbin/upstart --user
+ 5625 ?        S      0:00 upstart-udev-bridge --daemon --user
+ 5627 ?        Ss     0:00 ssh-agent -s
+ 5632 ?        Ss     0:00 dbus-daemon --fork --session --address=unix:abstract=/tmp/dbus-gjEBmoLnQl
+ 5668 ?        S      0:00 upstart-dbus-bridge --daemon --session --user --bus-name session
+ 5672 ?        S      0:00 upstart-dbus-bridge --daemon --system --user --bus-name system
+ 5674 ?        S      0:00 upstart-file-bridge --daemon --user
+ 5679 ?        Ss     0:00 gpg-agent --homedir /home/cmd38/.gnupg --use-standard-socket --daemon
+ 5688 ?        Ss     0:00 /bin/sh /etc/xdg/xfce4/xinitrc -- /etc/X11/xinit/xserverrc
+ 5699 ?        Sl     0:01 xfce4-session
+ 5703 ?        S      0:00 /usr/lib/x86_64-linux-gnu/xfce4/xfconf/xfconfd
+ 5709 ?        S      0:25 xfwm4 --replace --display :0.0 --sm-client-id 21b3e59b7-a66a-44dd-9b06-bec3
+ 5710 ?        Sl     0:01 Thunar --sm-client-id 2e0ffeaf8-a503-40c6-bf08-2d7ae936bfa7 --daemon
+ 5712 ?        Sl     0:03 xfce4-panel --display :0.0 --sm-client-id 2bd4857d5-39fb-4628-a291-89060c58
+ 5713 ?        Ssl    0:01 xfsettingsd --display :0.0 --sm-client-id 2ad160da4-7cf9-4efd-8323-82be9c51
+ 5715 ?        Sl     0:01 xfdesktop --display :0.0 --sm-client-id 2bde03bf0-3c37-4b60-aa47-1aaf9089a1
+ 5721 ?        Sl     0:00 /usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-1.0 /usr/lib/x86_64-linux-gnu
+ 5723 ?        Sl     0:02 xfce4-terminal --geometry=150x60 --display :0.0 --role=xfce4-terminal-15493
+ 5724 ?        S      0:00 /usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-1.0 /usr/lib/x86_64-linux-gnu
+ 5726 ?        Sl     0:00 /usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0 /usr/lib/x86_64-linux-gnu
+ 5728 ?        Sl     0:00 /usr/lib/gvfs/gvfsd
+ 5729 ?        Ssl    0:00 xfce4-power-manager --restart --sm-client-id 214d67ef5-b649-4cb2-be95-5c756
+ 5736 ?        Sl     0:00 /usr/lib/gvfs/gvfsd-fuse /run/user/50948/gvfs -f -o big_writes
+ 5750 ?        Sl     0:00 /usr/lib/at-spi2-core/at-spi-bus-launcher
+ 5759 ?        S      0:00 /usr/bin/dbus-daemon --config-file=/etc/at-spi2/accessibility.conf --nofork
+ 5761 ?        Sl     0:02 /usr/lib/at-spi2-core/at-spi2-registryd --use-gnome-session
+ 5775 ?        Sl     0:00 light-locker
+ 5776 ?        Sl     0:00 /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1
+ 5777 ?        Sl     0:00 /usr/bin/python3 /usr/bin/blueman-applet
+ 5779 ?        Sl     0:00 nm-applet
+ 5782 ?        Sl     0:00 /usr/bin/python3 /usr/share/system-config-printer/applet.py
+ 5785 ?        Ssl    0:00 xfce4-volumed
+ 5786 ?        S      0:00 gnome-pty-helper
+ 5788 ?        Sl     0:00 update-notifier
+ 5795 ?        Sl     0:00 /usr/lib/dconf/dconf-service
+ 5804 ?        S      0:02 xscreensaver -no-splash
+ 5808 pts/1    Ss     0:00 bash
+ 5825 ?        S      0:00 upstart --user --startup-event indicator-services-start
+ 5827 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-messages/indicator-messages-service
+ 5828 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-bluetooth/indicator-bluetooth-service
+ 5829 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-power/indicator-power-service
+ 5830 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-datetime/indicator-datetime-service
+ 5831 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-keyboard/indicator-keyboard-service --u
+ 5832 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-sound/indicator-sound-service
+ 5833 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-session/indicator-session-service
+ 5837 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-application/indicator-application-servi
+ 5868 ?        S<l    0:01 /usr/bin/pulseaudio --start --log-target=syslog
+ 5930 ?        S      0:00 /usr/lib/bluetooth/obexd
+ 5936 ?        Sl     5:53 /opt/google/chrome/chrome
+ 5941 ?        S      0:00 cat
+ 5942 ?        S      0:00 cat
+ 5945 ?        S      0:00 /opt/google/chrome/chrome --type=zygote --enable-crash-reporter=3bffbe1a-25
+ 5946 ?        S      0:00 /opt/google/chrome/nacl_helper
+ 5949 ?        S      0:00 /opt/google/chrome/chrome --type=zygote --enable-crash-reporter=3bffbe1a-25
+ 5972 ?        Sl     8:13 /opt/google/chrome/chrome --type=gpu-process --field-trial-handle=110428574
+ 5978 ?        Sl     0:52 /opt/google/chrome/chrome --type=utility --field-trial-handle=1104285748142
+ 5995 ?        S      0:00 /opt/google/chrome/chrome --type=-broker
+ 6040 ?        Sl     0:04 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+ 6146 ?        Sl     0:01 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+ 6196 ?        Sl     0:00 /usr/lib/gvfs/gvfs-udisks2-volume-monitor
+ 6201 ?        Sl     0:00 /usr/lib/gvfs/gvfs-afc-volume-monitor
+ 6207 ?        Sl     0:00 /usr/lib/gvfs/gvfs-goa-volume-monitor
+ 6212 ?        Sl     0:00 /usr/lib/gvfs/gvfs-mtp-volume-monitor
+ 6217 ?        Sl     0:00 /usr/lib/gvfs/gvfs-gphoto2-volume-monitor
+ 6222 ?        Sl     0:00 /usr/lib/gvfs/gvfsd-trash --spawner :1.13 /org/gtk/gvfs/exec_spaw/0
+ 6229 ?        Sl     0:00 /usr/lib/gvfs/gvfsd-metadata
+ 6261 ?        Sl     3:22 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+ 6302 ?        S      0:00 /opt/eclipse2018.12/eclipse
+ 6324 ?        Sl    10:18 /usr/bin/java -Dosgi.requiredJavaVersion=1.8 -Dosgi.instance.area.default=@
+ 6543 ?        Sl     1:03 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+ 8567 ?        Sl     2:14 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+ 9756 ?        Sl     0:09 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+11773 ?        Sl     7:51 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+11811 ?        Sl     5:29 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+13909 ?        Sl     1:02 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+13926 ?        Sl     0:15 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+13952 ?        Sl     0:12 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+13971 ?        Sl     0:27 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+13993 ?        Sl     0:11 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+16129 ?        Sl     0:17 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+16678 ?        I      0:00 [kworker/2:2]
+19163 ?        Sl     0:03 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+19191 ?        Sl     0:26 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+19246 ?        Sl     0:02 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+19259 ?        Sl     0:04 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+19277 ?        Sl     0:00 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+19293 ?        Sl     0:00 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+19307 ?        Sl     0:11 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+19320 ?        Sl     2:16 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+21281 ?        S      0:00 /usr/lib/cups/notifier/dbus dbus://
+21648 ?        Sl     0:06 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+22861 ?        Sl     0:02 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+22898 ?        Sl     2:43 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+25025 ?        I      0:00 [kworker/1:0]
+25298 ?        Sl     0:18 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+25396 ?        Sl     0:10 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+25541 ?        Sl     1:29 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+25898 ?        Sl     0:03 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+26356 ?        I      0:00 [kworker/6:0]
+26367 ?        Sl     1:51 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+26426 ?        I      0:00 [kworker/3:2]
+26618 ?        I      0:00 [kworker/4:1]
+27735 ?        S      0:00 pickup -l -t unix -u -c
+27941 ?        I      0:00 [kworker/3:1]
+28253 ?        I      0:00 [kworker/u16:1]
+29024 ?        Sl     0:00 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+29087 ?        I      0:00 [kworker/1:1]
+29091 ?        I      0:00 [kworker/5:1]
+29168 ?        I      0:00 [kworker/0:2]
+30672 ?        Sl     0:12 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+30769 ?        I      0:00 [kworker/0:0]
+31261 ?        I      0:00 [kworker/u16:0]
+31383 ?        I      0:00 [kworker/7:0]
+31404 ?        I      0:00 [kworker/2:1]
+31563 ?        Sl     0:00 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+31597 pts/1    S      0:00 git-credential-cache--daemon /home/cmd38/.git-credential-cache/socket
+31634 ?        I      0:00 [kworker/6:1]
+31672 ?        I      0:00 [kworker/u16:2]
+31945 ?        S      0:00 /home/cmd38/232/proj03/Debug/proj03
+31963 ?        I      0:00 [kworker/7:1]
+31964 ?        I      0:00 [kworker/4:2]
+32277 ?        I      0:00 [kworker/5:2]
+
+terminate called after throwing an instance of 'std::logic_error'
+  what():  basic_string::_M_construct null not valid
+/home/cmd38/232$ ps -ax &
+filename is /bin/ps
+/home/cmd38/232$   PID TTY      STAT   TIME COMMAND
+    1 ?        Ss     0:02 /sbin/init nomdmonddf nomdmonisw dis_ucode_ldr
+    2 ?        S      0:00 [kthreadd]
+    4 ?        I<     0:00 [kworker/0:0H]
+    6 ?        I<     0:00 [mm_percpu_wq]
+    7 ?        S      0:00 [ksoftirqd/0]
+    8 ?        I      0:08 [rcu_sched]
+    9 ?        I      0:00 [rcu_bh]
+   10 ?        S      0:00 [migration/0]
+   11 ?        S      0:00 [watchdog/0]
+   12 ?        S      0:00 [cpuhp/0]
+   13 ?        S      0:00 [cpuhp/1]
+   14 ?        S      0:00 [watchdog/1]
+   15 ?        S      0:00 [migration/1]
+   16 ?        S      0:00 [ksoftirqd/1]
+   18 ?        I<     0:00 [kworker/1:0H]
+   19 ?        S      0:00 [cpuhp/2]
+   20 ?        S      0:00 [watchdog/2]
+   21 ?        S      0:00 [migration/2]
+   22 ?        S      0:00 [ksoftirqd/2]
+   24 ?        I<     0:00 [kworker/2:0H]
+   25 ?        S      0:00 [cpuhp/3]
+   26 ?        S      0:00 [watchdog/3]
+   27 ?        S      0:00 [migration/3]
+   28 ?        S      0:00 [ksoftirqd/3]
+   30 ?        I<     0:00 [kworker/3:0H]
+   31 ?        S      0:00 [cpuhp/4]
+   32 ?        S      0:00 [watchdog/4]
+   33 ?        S      0:00 [migration/4]
+   34 ?        S      0:00 [ksoftirqd/4]
+   36 ?        I<     0:00 [kworker/4:0H]
+   37 ?        S      0:00 [cpuhp/5]
+   38 ?        S      0:00 [watchdog/5]
+   39 ?        S      0:00 [migration/5]
+   40 ?        S      0:00 [ksoftirqd/5]
+   42 ?        I<     0:00 [kworker/5:0H]
+   43 ?        S      0:00 [cpuhp/6]
+   44 ?        S      0:00 [watchdog/6]
+   45 ?        S      0:00 [migration/6]
+   46 ?        S      0:00 [ksoftirqd/6]
+   48 ?        I<     0:00 [kworker/6:0H]
+   49 ?        S      0:00 [cpuhp/7]
+   50 ?        S      0:00 [watchdog/7]
+   51 ?        S      0:00 [migration/7]
+   52 ?        S      0:00 [ksoftirqd/7]
+   54 ?        I<     0:00 [kworker/7:0H]
+   55 ?        S      0:00 [kdevtmpfs]
+   56 ?        I<     0:00 [netns]
+   57 ?        S      0:00 [rcu_tasks_kthre]
+   58 ?        S      0:00 [kauditd]
+   62 ?        S      0:00 [khungtaskd]
+   63 ?        S      0:00 [oom_reaper]
+   64 ?        I<     0:00 [writeback]
+   65 ?        S      0:00 [kcompactd0]
+   66 ?        SN     0:00 [ksmd]
+   67 ?        SN     0:00 [khugepaged]
+   68 ?        I<     0:00 [crypto]
+   69 ?        I<     0:00 [kintegrityd]
+   70 ?        I<     0:00 [kblockd]
+   76 ?        I<     0:00 [ata_sff]
+   77 ?        I<     0:00 [md]
+   78 ?        I<     0:00 [edac-poller]
+   79 ?        I<     0:00 [devfreq_wq]
+   80 ?        I<     0:00 [watchdogd]
+   83 ?        S      0:00 [kswapd0]
+   84 ?        S      0:00 [ecryptfs-kthrea]
+  126 ?        I<     0:00 [kthrotld]
+  127 ?        I<     0:00 [acpi_thermal_pm]
+  131 ?        I<     0:00 [ipv6_addrconf]
+  140 ?        I<     0:00 [kstrp]
+  157 ?        I<     0:00 [charger_manager]
+  212 ?        S      0:00 [scsi_eh_0]
+  213 ?        I<     0:00 [scsi_tmf_0]
+  214 ?        S      0:00 [scsi_eh_1]
+  215 ?        I<     0:00 [scsi_tmf_1]
+  216 ?        S      0:00 [scsi_eh_2]
+  217 ?        I<     0:00 [scsi_tmf_2]
+  218 ?        S      0:00 [scsi_eh_3]
+  219 ?        I<     0:00 [scsi_tmf_3]
+  220 ?        S      0:00 [scsi_eh_4]
+  221 ?        I<     0:00 [scsi_tmf_4]
+  222 ?        S      0:00 [scsi_eh_5]
+  223 ?        I<     0:00 [scsi_tmf_5]
+  231 ?        S      0:00 [nvidia-modeset]
+  237 ?        I<     0:00 [kworker/6:1H]
+  261 ?        S      0:00 [jbd2/sda5-8]
+  262 ?        I<     0:00 [ext4-rsv-conver]
+  309 ?        Ss     0:01 /lib/systemd/systemd-journald
+  310 ?        I<     0:00 [kworker/2:1H]
+  317 ?        I<     0:00 [rpciod]
+  318 ?        I<     0:00 [xprtiod]
+  360 ?        Ss     0:00 /lib/systemd/systemd-udevd
+  367 ?        S<     0:00 [loop0]
+  369 ?        S<     0:00 [loop1]
+  371 ?        S<     0:00 [loop2]
+  373 ?        S<     0:00 [loop3]
+  374 ?        S<     0:00 [loop4]
+  392 ?        I<     0:00 [kworker/0:1H]
+  393 ?        I<     0:00 [kworker/3:1H]
+  405 ?        I<     0:00 [kworker/4:1H]
+  406 ?        I<     0:00 [kworker/5:1H]
+  412 ?        I<     0:00 [kworker/1:1H]
+  497 ?        Ss     0:00 /usr/sbin/rpc.gssd
+  554 ?        I<     0:09 [kworker/7:1H]
+  580 ?        S      0:00 [irq/28-mei_me]
+  783 ?        S      0:00 [UVM global queu]
+  786 ?        S      0:00 [UVM Tools Event]
+  919 ?        Ss     0:01 /usr/sbin/acpid
+  921 ?        Ss     0:00 /usr/sbin/inetd -i
+  929 ?        I      0:00 [kworker/u16:3]
+  931 ?        Ssl    0:00 /usr/sbin/rsyslogd -n
+  936 ?        Ss     0:02 /usr/sbin/sssd -i -f
+  939 ?        Ss     0:00 avahi-daemon: running [gold28.local]
+  941 ?        Ss     0:03 /usr/bin/dbus-daemon --system --address=systemd: --nofork --nopidfile --sys
+  952 ?        S      0:00 avahi-daemon: chroot helper
+  957 ?        Ssl    0:00 /usr/sbin/NetworkManager --no-daemon
+  958 ?        Ss     0:00 /usr/sbin/cupsd -l
+  960 ?        Ssl    0:00 /usr/sbin/cups-browsed
+  961 ?        Ss     0:00 /usr/sbin/atd -f
+  969 ?        Ss     0:00 /usr/sbin/cron -f
+  972 ?        Ssl    0:06 /usr/lib/snapd/snapd
+  999 ?        S      0:09 /usr/lib/x86_64-linux-gnu/sssd/sssd_be --domain cs.calvin.edu --uid 0 --gid
+ 1001 ?        Ssl    0:00 /usr/lib/colord/colord
+ 1010 ?        S      0:00 /usr/lib/postgresql/9.5/bin/postgres -D /var/lib/postgresql/9.5/main -c con
+ 1011 ?        I<     0:00 [iprt-VBoxWQueue]
+ 1023 ?        S      0:00 [iprt-VBoxTscThr]
+ 1032 ?        S      0:03 /usr/lib/x86_64-linux-gnu/sssd/sssd_nss --uid 0 --gid 0 --debug-to-files
+ 1033 ?        S      0:00 /usr/lib/x86_64-linux-gnu/sssd/sssd_sudo --uid 0 --gid 0 --debug-to-files
+ 1034 ?        S      0:00 /usr/lib/x86_64-linux-gnu/sssd/sssd_pam --uid 0 --gid 0 --debug-to-files
+ 1035 ?        S      0:00 /usr/lib/x86_64-linux-gnu/sssd/sssd_ssh --uid 0 --gid 0 --debug-to-files
+ 1036 ?        S      0:00 /usr/lib/x86_64-linux-gnu/sssd/sssd_pac --uid 0 --gid 0 --debug-to-files
+ 1046 ?        I      0:00 [kworker/7:2]
+ 1052 ?        Ssl    0:00 /usr/lib/policykit-1/polkitd --no-debug
+ 1053 ?        Ss     0:00 /lib/systemd/systemd-logind
+ 1054 ?        Ssl    0:02 /usr/lib/accountsservice/accounts-daemon
+ 1072 pts/1    S+     0:00 script
+ 1073 pts/12   Ss     0:00 bash -i
+ 1107 ?        Ss     0:00 postgres: checkpointer process   
+ 1108 ?        Ss     0:00 postgres: writer process   
+ 1109 ?        Ss     0:00 postgres: wal writer process   
+ 1110 ?        Ss     0:00 postgres: autovacuum launcher process   
+ 1111 ?        Ss     0:00 postgres: stats collector process   
+ 1128 pts/12   S+     0:00 ./Debug/proj03
+ 1166 ?        I      0:00 [kworker/6:2]
+ 1167 pts/12   S+     0:00 ./Debug/proj03
+ 1176 pts/13   Ss+    0:00 bash
+ 1207 pts/12   R+     0:00 ps -ax
+ 1298 ?        Ss     0:00 /sbin/dhclient -1 -v -pf /run/dhclient.enp0s25.pid -lf /var/lib/dhcp/dhclie
+ 1406 ?        Ssl    1:44 /usr/bin/mongod --config /etc/mongod.conf
+ 1407 ?        Ss     0:00 /usr/sbin/oddjobd -n -p /var/run/oddjobd.pid -t 300
+ 1409 ?        Ss     0:00 /usr/sbin/certmonger -S -p /var/run/certmonger.pid -n
+ 1410 ?        Ss     0:00 /usr/games/bzfs -advertise NONE
+ 1411 ?        Ss     0:02 /usr/bin/perl /usr/local/scripts/computerinfodaemon.pl
+ 1413 ?        Ssl    0:00 /usr/bin/whoopsie -f
+ 1424 ?        Ss     0:00 /usr/sbin/sshd -D
+ 1446 ?        I<     0:00 [nfsiod]
+ 1490 ?        S      0:00 [NFSv4 callback]
+ 1590 ?        S<L    0:01 /usr/bin/atop -a -w /var/log/atop/atop_20190401 600
+ 1620 ?        SLsl   0:00 /usr/sbin/lightdm
+ 1766 ?        Ss     0:00 /usr/lib/postfix/sbin/master
+ 1768 ?        S      0:00 qmgr -l -t unix -u
+ 1917 ?        SNsl   0:00 /usr/lib/rtkit/rtkit-daemon
+ 1943 ?        Ssl    0:01 /usr/bin/ruby /usr/bin/puppet agent
+ 1951 tty1     Ss+    0:00 /sbin/agetty --noclear tty1 linux
+ 2429 ?        Ss     0:01 /usr/sbin/ntpd -p /var/run/ntpd.pid -c /var/lib/ntp/ntp.conf.dhcp -u 125:13
+ 3295 tty7     Ss+    8:25 /usr/lib/xorg/Xorg -core :0 -seat seat0 -auth /var/run/lightdm/root/:0 -nol
+ 3299 ?        Ss     0:00 /usr/bin/nvidia-persistenced --user root --no-persistence-mode --verbose
+ 3301 ?        S      1:21 [irq/30-nvidia]
+ 3302 ?        S      0:00 [nvidia]
+ 3924 ?        Ssl    0:00 /usr/lib/upower/upowerd
+ 4382 ?        Ssl    0:01 /usr/lib/udisks2/udisksd --no-debug
+ 5540 ?        Sl     0:00 lightdm --session-child 13 20
+ 5552 ?        Ss     0:00 /lib/systemd/systemd --user
+ 5553 ?        S      0:00 (sd-pam)
+ 5557 ?        Ss     0:00 /sbin/upstart --user
+ 5625 ?        S      0:00 upstart-udev-bridge --daemon --user
+ 5627 ?        Ss     0:00 ssh-agent -s
+ 5632 ?        Ss     0:00 dbus-daemon --fork --session --address=unix:abstract=/tmp/dbus-gjEBmoLnQl
+ 5668 ?        S      0:00 upstart-dbus-bridge --daemon --session --user --bus-name session
+ 5672 ?        S      0:00 upstart-dbus-bridge --daemon --system --user --bus-name system
+ 5674 ?        S      0:00 upstart-file-bridge --daemon --user
+ 5679 ?        Ss     0:00 gpg-agent --homedir /home/cmd38/.gnupg --use-standard-socket --daemon
+ 5688 ?        Ss     0:00 /bin/sh /etc/xdg/xfce4/xinitrc -- /etc/X11/xinit/xserverrc
+ 5699 ?        Sl     0:01 xfce4-session
+ 5703 ?        S      0:00 /usr/lib/x86_64-linux-gnu/xfce4/xfconf/xfconfd
+ 5709 ?        S      0:25 xfwm4 --replace --display :0.0 --sm-client-id 21b3e59b7-a66a-44dd-9b06-bec3
+ 5710 ?        Sl     0:01 Thunar --sm-client-id 2e0ffeaf8-a503-40c6-bf08-2d7ae936bfa7 --daemon
+ 5712 ?        Sl     0:03 xfce4-panel --display :0.0 --sm-client-id 2bd4857d5-39fb-4628-a291-89060c58
+ 5713 ?        Ssl    0:01 xfsettingsd --display :0.0 --sm-client-id 2ad160da4-7cf9-4efd-8323-82be9c51
+ 5715 ?        Sl     0:01 xfdesktop --display :0.0 --sm-client-id 2bde03bf0-3c37-4b60-aa47-1aaf9089a1
+ 5721 ?        Sl     0:00 /usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-1.0 /usr/lib/x86_64-linux-gnu
+ 5723 ?        Sl     0:02 xfce4-terminal --geometry=150x60 --display :0.0 --role=xfce4-terminal-15493
+ 5724 ?        S      0:00 /usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-1.0 /usr/lib/x86_64-linux-gnu
+ 5726 ?        Sl     0:00 /usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0 /usr/lib/x86_64-linux-gnu
+ 5728 ?        Sl     0:00 /usr/lib/gvfs/gvfsd
+ 5729 ?        Ssl    0:00 xfce4-power-manager --restart --sm-client-id 214d67ef5-b649-4cb2-be95-5c756
+ 5736 ?        Sl     0:00 /usr/lib/gvfs/gvfsd-fuse /run/user/50948/gvfs -f -o big_writes
+ 5750 ?        Sl     0:00 /usr/lib/at-spi2-core/at-spi-bus-launcher
+ 5759 ?        S      0:00 /usr/bin/dbus-daemon --config-file=/etc/at-spi2/accessibility.conf --nofork
+ 5761 ?        Sl     0:02 /usr/lib/at-spi2-core/at-spi2-registryd --use-gnome-session
+ 5775 ?        Sl     0:00 light-locker
+ 5776 ?        Sl     0:00 /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1
+ 5777 ?        Sl     0:00 /usr/bin/python3 /usr/bin/blueman-applet
+ 5779 ?        Sl     0:00 nm-applet
+ 5782 ?        Sl     0:00 /usr/bin/python3 /usr/share/system-config-printer/applet.py
+ 5785 ?        Ssl    0:00 xfce4-volumed
+ 5786 ?        S      0:00 gnome-pty-helper
+ 5788 ?        Sl     0:00 update-notifier
+ 5795 ?        Sl     0:00 /usr/lib/dconf/dconf-service
+ 5804 ?        S      0:02 xscreensaver -no-splash
+ 5808 pts/1    Ss     0:00 bash
+ 5825 ?        S      0:00 upstart --user --startup-event indicator-services-start
+ 5827 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-messages/indicator-messages-service
+ 5828 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-bluetooth/indicator-bluetooth-service
+ 5829 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-power/indicator-power-service
+ 5830 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-datetime/indicator-datetime-service
+ 5831 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-keyboard/indicator-keyboard-service --u
+ 5832 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-sound/indicator-sound-service
+ 5833 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-session/indicator-session-service
+ 5837 ?        Ssl    0:00 /usr/lib/x86_64-linux-gnu/indicator-application/indicator-application-servi
+ 5868 ?        S<l    0:01 /usr/bin/pulseaudio --start --log-target=syslog
+ 5930 ?        S      0:00 /usr/lib/bluetooth/obexd
+ 5936 ?        Sl     5:53 /opt/google/chrome/chrome
+ 5941 ?        S      0:00 cat
+ 5942 ?        S      0:00 cat
+ 5945 ?        S      0:00 /opt/google/chrome/chrome --type=zygote --enable-crash-reporter=3bffbe1a-25
+ 5946 ?        S      0:00 /opt/google/chrome/nacl_helper
+ 5949 ?        S      0:00 /opt/google/chrome/chrome --type=zygote --enable-crash-reporter=3bffbe1a-25
+ 5972 ?        Sl     8:13 /opt/google/chrome/chrome --type=gpu-process --field-trial-handle=110428574
+ 5978 ?        Sl     0:53 /opt/google/chrome/chrome --type=utility --field-trial-handle=1104285748142
+ 5995 ?        S      0:00 /opt/google/chrome/chrome --type=-broker
+ 6040 ?        Sl     0:04 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+ 6146 ?        Sl     0:01 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+ 6196 ?        Sl     0:00 /usr/lib/gvfs/gvfs-udisks2-volume-monitor
+ 6201 ?        Sl     0:00 /usr/lib/gvfs/gvfs-afc-volume-monitor
+ 6207 ?        Sl     0:00 /usr/lib/gvfs/gvfs-goa-volume-monitor
+ 6212 ?        Sl     0:00 /usr/lib/gvfs/gvfs-mtp-volume-monitor
+ 6217 ?        Sl     0:00 /usr/lib/gvfs/gvfs-gphoto2-volume-monitor
+ 6222 ?        Sl     0:00 /usr/lib/gvfs/gvfsd-trash --spawner :1.13 /org/gtk/gvfs/exec_spaw/0
+ 6229 ?        Sl     0:00 /usr/lib/gvfs/gvfsd-metadata
+ 6261 ?        Sl     3:22 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+ 6302 ?        S      0:00 /opt/eclipse2018.12/eclipse
+ 6324 ?        Sl    10:18 /usr/bin/java -Dosgi.requiredJavaVersion=1.8 -Dosgi.instance.area.default=@
+ 6543 ?        Sl     1:03 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+ 8567 ?        Sl     2:15 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+ 9756 ?        Sl     0:09 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+11773 ?        Sl     7:52 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+11811 ?        Sl     5:32 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+13909 ?        Sl     1:02 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+13926 ?        Sl     0:15 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+13952 ?        Sl     0:12 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+13971 ?        Sl     0:27 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+13993 ?        Sl     0:11 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+16129 ?        Sl     0:17 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+16678 ?        I      0:00 [kworker/2:2]
+19163 ?        Sl     0:03 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+19191 ?        Sl     0:26 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+19246 ?        Sl     0:02 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+19259 ?        Sl     0:04 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+19277 ?        Sl     0:00 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+19293 ?        Sl     0:00 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+19307 ?        Sl     0:11 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+19320 ?        Sl     2:16 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+21281 ?        S      0:00 /usr/lib/cups/notifier/dbus dbus://
+21648 ?        Sl     0:06 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+22861 ?        Sl     0:02 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+22898 ?        Sl     2:43 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+25025 ?        I      0:00 [kworker/1:0]
+25298 ?        Sl     0:18 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+25396 ?        Sl     0:10 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+25541 ?        Sl     1:29 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+25898 ?        Sl     0:03 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+26356 ?        I      0:00 [kworker/6:0]
+26367 ?        Sl     1:51 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+26426 ?        I      0:00 [kworker/3:2]
+26618 ?        I      0:00 [kworker/4:1]
+27735 ?        S      0:00 pickup -l -t unix -u -c
+27941 ?        I      0:00 [kworker/3:1]
+28253 ?        I      0:00 [kworker/u16:1]
+29024 ?        Sl     0:00 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+29087 ?        I      0:00 [kworker/1:1]
+29091 ?        I      0:00 [kworker/5:1]
+29168 ?        I      0:00 [kworker/0:2]
+30672 ?        Sl     0:12 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+30769 ?        I      0:00 [kworker/0:0]
+31261 ?        I      0:00 [kworker/u16:0]
+31383 ?        I      0:00 [kworker/7:0]
+31404 ?        I      0:00 [kworker/2:1]
+31563 ?        Sl     0:00 /opt/google/chrome/chrome --type=renderer --field-trial-handle=110428574814
+31597 pts/1    S      0:00 git-credential-cache--daemon /home/cmd38/.git-credential-cache/socket
+31634 ?        I      0:00 [kworker/6:1]
+31672 ?        I      0:00 [kworker/u16:2]
+31945 ?        S      0:00 /home/cmd38/232/proj03/Debug/proj03
+31963 ?        I      0:00 [kworker/7:1]
+31964 ?        I      0:00 [kworker/4:2]
+32277 ?        I      0:00 [kworker/5:2]
+ls
+filename is /bin/ls
+proj02	proj03	proj15	project-01
+/home/cmd38/232$ exit
+/home/cmd38/232$ ^C
+cmd38@gold28:~/232/proj03$ exit
+
+Script done on Mon 01 Apr 2019 11:42:56 PM EDT
