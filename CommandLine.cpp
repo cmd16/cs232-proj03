@@ -34,7 +34,7 @@ CommandLine::CommandLine(istream& in) {
 	in.ignore();  // read in and ignore the newline character
 
 	myArgCount = words.size();
-	myArgVecPtr = (char**) calloc (myArgCount, sizeof(char*));
+	myArgVecPtr = (char**) calloc (myArgCount, sizeof(char*) + 1);  // + 1 to leave space for NULL terminator
 	// check if memory has been successfully allocated or not
 	if (myArgVecPtr == NULL) {
 		cerr << "Failed to allocate ArgVecPtr. Exiting now." << endl;

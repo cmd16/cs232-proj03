@@ -9,6 +9,7 @@
 #include <unistd.h>  // fork
 #include <sys/wait.h>  // waitpid
 #include <sys/param.h>  // MAXPATHLEN
+#include <cerrno>		// errno
 
 CDShell::CDShell() {
 	myPrompt = Prompt();
@@ -33,7 +34,7 @@ void CDShell::run() {
 			int rc = chdir(newDir);
 			if (rc == -1) {
 				// TODO: handle error. use errno to determine problem
-				cerr << "failed to change directory" << endl;
+				cerr << "failed to change directory: " << errno << endl;
 			}
 			myPrompt = Prompt(); // make a new Prompt because the current working directory has changed
 		}
@@ -43,7 +44,7 @@ void CDShell::run() {
 			char *path = getcwd(buffer, MAXPATHLEN);
 			if (!path) {
 				// TODO: handle error. use errno to determine problem
-				cerr << "failed to get current working directory" << endl;
+				cerr << "failed to get current working directory: " << errno << endl;
 			} else {
 				string current_path = path;
 				cout << current_path << endl;
@@ -58,18 +59,23 @@ void CDShell::run() {
 			}
 			string filename = myPath.getDirectory(myPath.find(command));
 			filename = filename + "/" + command;
-			cout << "filename is " << filename << endl;
 			pid_t pid = fork();
 			if (pid == 0) {  // we are child process
 				int status = execve(filename.c_str(), comm_line.getArgVector(), NULL);
 				if (status == -1) {
-					// TODO: figure out how to output error
-					cerr << "Error executing command" << endl;
+					cerr << "Error executing command: " << errno << endl;
+//					cout << "Last item of argv (should be null): " << comm_line.getArgVector()[comm_line.getArgCount()] << endl;
+					if (errno == 14) {
+						for (int i = 0; i < comm_line.getArgCount(); i++) {
+							cout << comm_line.getArgVector(i) << "!";
+						}
+						cout << endl;
+					}
 				}
 			}
 			else if (pid == -1) {
 				// TODO: output error
-				cerr << "Error with fork" << endl;
+				cerr << "Error with fork" << errno << endl;
 			}
 			else if (comm_line.noAmpersand()) {
 				waitpid(pid, NULL, 0); // wait for the command to finish
