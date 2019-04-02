@@ -31,6 +31,7 @@ void PathTester::testConstructor(){
 //	cout << path << endl;
 	vector<string> dir;
 	dir = test.returnDIR();
+	dir.size();
 	cout << dir.size() << endl;
 //	for (unsigned i = 0 ; i < dir.size(); i++ ) {
 //			cout <<  dir[i] << endl;
