@@ -1,8 +1,8 @@
 /*
  * Path.cpp
  *
- *  Created on: Mar 25, 2019
- *      Author: dma2
+ *  Created on: Mar 25, 2019, for CS 232 at Calvin College
+ *      Author: Daniel Ackuaku
  */
 
 #include "Path.h"
@@ -15,7 +15,6 @@
  * return: Null
  */
 Path::Path() {
-
 	string newParse = getenv("PATH");
 	stringstream stream (newParse);
 	string transfer;
@@ -23,9 +22,6 @@ Path::Path() {
 
 		directory.push_back(transfer);
 	}
-	
-
-
 
 }
 

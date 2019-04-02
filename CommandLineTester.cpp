@@ -1,8 +1,8 @@
 /*
  * CommandLineTester.cpp
  *
- *  Created on: Mar 13, 2019
- *      Author: cmd38
+ *  Created on: Mar 13, 2019, for CS 232 at Calvin College
+ *      Author: Catherine DeJager
  */
 
 #include "CommandLineTester.h"

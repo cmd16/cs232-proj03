@@ -1,7 +1,7 @@
 /*
  * CommandLine.h
  *
- *  Created on: Mar 13, 2019
+ *  Created on: Mar 13, 2019, for CS 232 at Calvin College
  *      Author: Catherine DeJager
  */
 
