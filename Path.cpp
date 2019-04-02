@@ -1,8 +1,8 @@
 /*
  * Path.cpp
  *
- *  Created on: Mar 25, 2019
- *      Author: dma2
+ *  Created on: Mar 25, 2019, for CS 232 at Calvin College
+ *      Author: Daniel Ackuaku
  */
 
 #include "Path.h"

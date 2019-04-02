@@ -1,8 +1,8 @@
 /*
  * CDShell.cpp
  *
- *  Created on: Mar 30, 2019
- *      Author: Catherine D and Daniel A
+ *  Created on: Mar 30, 2019, for CS 232 at Calvin College
+ *      Author: Catherine D and Daniel Ackuaku
  */
 
 #include "CDShell.h"

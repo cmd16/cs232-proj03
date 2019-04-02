@@ -1,8 +1,8 @@
 /*
  * CDShell.h
  *
- *  Created on: Mar 30, 2019
- *      Author: cmd38
+ *  Created on: Mar 30, 2019, for CS 232 at Calvin College
+ *      Author: Catherine DeJager and Daniel Ackuaku
  */
 
 #ifndef CDSHELL_H_
