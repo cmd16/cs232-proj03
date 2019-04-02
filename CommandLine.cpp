@@ -36,7 +36,8 @@ CommandLine::CommandLine(istream& in) {
 	myArgVecPtr = (char**) calloc (myArgCount, sizeof(char*));
 	// check if memory has been successfully allocated or not
 	if (myArgVecPtr == NULL) {
-		exit(1);  // TODO: is this how we want to handle that problem?
+		cerr << "Failed to allocate ArgVecPtr. Exiting now." << endl;
+		exit(-1);  // TODO: is this how we want to handle that problem?
 	}
 
 	for (int i = 0; i < myArgCount; i++) {
@@ -49,17 +50,14 @@ CommandLine::CommandLine(istream& in) {
 }
 
 char* CommandLine::getArgVector(int i) const {
-//	if (i < 0) {
-//		throw out_of_range("getArgVector(int i): index too low");
-//	}
-//	if (i > myArgCount - 1) {
-//		throw out_of_range("getArgVector(int i): index too high");
-//	}
+	if (i < 0 or i > myArgCount - 1) {
+		throw out_of_range("getArgVector(int i): index must be non-negative and less than myArgCount");
+	}
 	return myArgVecPtr[i];
 }
 
+// CommandLine destructor deallocates myArgVecPtr and the char arrays in myArgVec
 CommandLine::~CommandLine() {
-	// TODO Auto-generated destructor stub
 	for (int i = 0; i < myArgCount; i++) {
 		delete [] myArgVecPtr[i];
 		myArgVecPtr[i] = NULL;

@@ -27,7 +27,6 @@ void CDShell::run() {
 
 		CommandLine comm_line(cin);
 		string command = comm_line.getCommand();
-		cout << "command: " << command << endl;  // DEBUG
 		if (command == "exit") {
 			to_exit = true;
 		}
@@ -56,9 +55,7 @@ void CDShell::run() {
 		}
 		else {  // execute the system call
 			// find the filename specified in command. If the command can't be found, output an error and continue
-			// TODO: clean this up
 			int index = myPath.find(command);
-			cout << "index is " << index << " size of path is " << myPath.returnDIR().size() << endl;
 			if (index == -1) {
 				cerr << command << ": command not found" << endl;
 				continue;
@@ -76,7 +73,7 @@ void CDShell::run() {
 			}
 			else if (pid == -1) {
 				// TODO: output error
-				cout << "Error with fork" << endl;
+				cerr << "Error with fork" << endl;
 			}
 			else if (comm_line.noAmpersand()) {
 				waitpid(pid, NULL, 0); // wait for the command to finish
@@ -86,6 +83,6 @@ void CDShell::run() {
 }
 
 CDShell::~CDShell() {
-	// TODO Auto-generated destructor stub
+
 }
 

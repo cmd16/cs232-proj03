@@ -13,7 +13,6 @@
 using namespace std;
 
 CommandLineTester::CommandLineTester() {
-	// TODO Auto-generated constructor stub
 
 }
 
@@ -28,11 +27,9 @@ void CommandLineTester::testConstructor() {
 	assert(fin.is_open());
 	CommandLine c0 = CommandLine(fin);
 	fin.close();
-//	cout << c0.getArgVector(1) << "hey" << flush;
 	assert(c0.getArgCount() == 1);
 	assert(c0.noAmpersand());
 	assert(strcmp(c0.getCommand(), "ps") == 0);
-	assert(c0.getArgVector(1) == NULL);
 	cout << "0 " << flush;
 
 	infilename = "cl_test_01.txt";
@@ -46,24 +43,20 @@ void CommandLineTester::testConstructor() {
 	assert(strcmp(c1.getArgVector(1), "..") == 0);
 	assert(strcmp(c1.getArgVector(2), "-a") == 0);
 	assert(strcmp(c1.getArgVector(3), "--directory") == 0);
-	// TODO: get try/catch to work
-//	try {
-//		assert(c1.getArgVector(4) == NULL);
-//	}
-//	catch (out_of_range &e) {
-//		cout << e.what() << endl; // TODO: check equality
-//	}
-//	try {
-//		assert(c1.getArgVector(-1) == NULL);
-//	}
-//	catch (out_of_range &e) {
-//		cout << e.what() << endl; // TODO: check equality
-//	}
-	cout << "1 " << flush;
+	try {
+		assert(c1.getArgVector(4) == NULL);
+	} catch (out_of_range &e) {
+		cout << "1 " << flush;
+	}
+	try {
+		assert(c1.getArgVector(-1) == NULL);
+	} catch (out_of_range &e) {
+		cout << "2 " << flush;
+	}
 	cout << "Passed!" << endl;
 }
 
 CommandLineTester::~CommandLineTester() {
-	// TODO Auto-generated destructor stub
+
 }
 
