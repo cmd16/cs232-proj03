@@ -40,20 +40,19 @@ CommandLine::CommandLine(istream& in) {
 	for (int i = 0; i < myArgCount; i++) {
 		word = words.front();
 		myArgVecPtr[i] = new char[word.size() + 1];
-		// copy the word as a character array into argv
-		word.copy(myArgVecPtr[i], word.size() + 1);
-		myArgVecPtr[i][word.size()] = '\0';  // make sure the char* string is null-terminated
+		// copy the word as a character array into argv. strcpy copies the null character
+		strcpy(myArgVecPtr[i], word.c_str());
 		words.pop();
 	}
 }
 
 char* CommandLine::getArgVector(int i) const {
-	if (i < 0) {
-		throw out_of_range("getArgVector(int i): index too low");
-	}
-	if (i > myArgCount - 1) {
-		throw out_of_range("getArgVector(int i): index too high");
-	}
+//	if (i < 0) {
+//		throw out_of_range("getArgVector(int i): index too low");
+//	}
+//	if (i > myArgCount - 1) {
+//		throw out_of_range("getArgVector(int i): index too high");
+//	}
 	return myArgVecPtr[i];
 }
 
