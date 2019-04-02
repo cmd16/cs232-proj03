@@ -13,7 +13,6 @@
 //Path test;
 
 PathTester::PathTester() {
-	// TODO Auto-generated constructor stub
 
 }
 
@@ -69,6 +68,6 @@ void PathTester::testFindcmd38() {
 
 
 PathTester::~PathTester() {
-	// TODO Auto-generated destructor stub
+
 }
 

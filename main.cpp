@@ -14,8 +14,8 @@ int main() {
 	ClTester.runTests();
 //    PathTester PTester;
 //	PTester.runTests();
-	CDShell shell;
-	shell.run();
+//	CDShell shell;
+//	shell.run();
 	return 0;
 }
 
