@@ -10,12 +10,12 @@
 #include "CDShell.h"
 
 int main() {
-	CommandLineTester ClTester = CommandLineTester();
-	ClTester.runTests();
-//    PathTester PTester;
-//	PTester.runTests();
-	CDShell shell;
-	shell.run();
+// 	CommandLineTester ClTester = CommandLineTester();
+// 	ClTester.runTests();
+   PathTester PTester;
+	PTester.runTests();
+	// CDShell shell;
+	// shell.run();
 	return 0;
 }
 

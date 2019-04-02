@@ -26,7 +26,7 @@ void PathTester::runTests() {
 void PathTester::testConstructor(){
 	Path test;
 	
-	char *path;
+	const char *path;
 	path = getenv("PATH");
 
 //	cout << path << endl;

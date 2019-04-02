@@ -15,22 +15,34 @@
  * return: Null
  */
 Path::Path() {
-	char * pch;								// initializing a character pointer
+	// char * pch;								// initializing a character pointer
 	// new version
 //	char * tempPath = getenv("PATH");
 //	strcpy(pPath, tempPath);
-	// old version
-	pPath = getenv("PATH");					// populating the character pointer pPath with the PATH
-	pch = strtok(pPath, ":");				// splits the chars into chunks any time the ":" appears
+// 	// old version
+// 	pPath = getenv("PATH");					// populating the character pointer pPath with the PATH
+// 	pch = strtok(pPath, ":NULL");				// splits the chars into chunks any time the ":" appears
 
 
 	
 
-/* Loop that stores each directory in PATH in a vector */
-	while (pch != NULL) {
-		directory.push_back(pch);
-		pch = strtok(NULL, ":");			// after ":" a NULL is inserted into the character array causing the loop to return to the top
+// /* Loop that stores each directory in PATH in a vector */
+// 	while (pch != NULL) {
+// 		directory.push_back(pch);
+// 		pch = strtok(NULL, ":");			// after ":" a NULL is inserted into the character array causing the loop to return to the top
+// 	}
+
+	string newParse = getenv("PATH");
+	// vector<string> directory;
+	stringstream stream (newParse);
+	string transfer;
+	while(getline(stream, transfer, ':')){
+
+		directory.push_back(transfer);
 	}
+	
+
+
 
 }
 
