@@ -28,6 +28,7 @@ void CommandLineTester::testConstructor() {
 	assert(fin.is_open());
 	CommandLine c0 = CommandLine(fin);
 	fin.close();
+//	cout << c0.getArgVector(1) << "hey" << flush;
 	assert(c0.getArgCount() == 1);
 	assert(c0.noAmpersand());
 	assert(strcmp(c0.getCommand(), "ps") == 0);

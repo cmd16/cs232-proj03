@@ -15,12 +15,13 @@
 /*
  * construct a CommandLine by reading a command-line from in, parsing it, and building instance variables for argc and argv
  * (you may find the calloc() and free() system calls to be of use here)
+ * Assumption: the istream will be terminated with newline (which cin is).
  */
 CommandLine::CommandLine(istream& in) {
 	myNoAmpersand = true;
 	string word;
 	queue<string> words;
-	while (in.peek() != '\n' && !in.eof()) {
+	while (in.peek() != '\n') {
 		in >> word;
 		if (word == "&") {
 			myNoAmpersand = false;
@@ -29,6 +30,7 @@ CommandLine::CommandLine(istream& in) {
 			words.push(word);
 		}
 	}
+	in.ignore();  // read in and ignore the newline character
 
 	myArgCount = words.size();
 	myArgVecPtr = (char**) calloc (myArgCount, sizeof(char*));

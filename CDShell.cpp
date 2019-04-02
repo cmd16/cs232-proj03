@@ -22,6 +22,7 @@ void CDShell::run() {
 	cout << "path size " << myPath.returnDIR().size() << endl;
 	bool to_exit = false;  // flag to indicate whether we want to exit the program or not
 	while (! to_exit) {
+//		cin.ignore();
 		cout << myPrompt.get() << flush;
 
 		CommandLine comm_line(cin);
